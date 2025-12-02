@@ -27,11 +27,14 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "config.json",
+                "input": "src/config/",
+                "output": "/"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ]
+            "styles": ["src/styles.scss"]
           },
           "configurations": {
             "production": {
@@ -47,12 +50,20 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "assets": [{ "glob": "config.production.json", "input": "src/config", "output": "/" }]
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "assets": [{ "glob": "config.json", "input": "src/config", "output": "/" }]
+            },
+            "staging": {
+              "assets": [{ "glob": "config.staging.json", "input": "src/config", "output": "/" }]
+            },
+            "uat": {
+              "assets": [{ "glob": "config.uat.json", "input": "src/config", "output": "/" }]
             }
           },
           "defaultConfiguration": "production"
