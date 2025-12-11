@@ -1,3 +1,9 @@
+<div class="auth-header text-center mb-3">
+  <h2>Welcome</h2>
+  <p>Sign in to continue</p>
+</div>
+
+
 <form [formGroup]="loginForm" (ngSubmit)="login()" class="login-form">
   <h2 class="text-center mb-4">{{pageHeading}}</h2>
 
@@ -7,33 +13,28 @@
     <input matInput placeholder="Enter your email" formControlName="email" />
 
     @if (loginForm.get('email')?.errors?.['required']) {
-      <mat-error>{{errorMessages.email.required}}</mat-error>
+    <mat-error>{{errorMessages.email.required}}</mat-error>
     }
     @if (loginForm.get('email')?.errors?.['email']) {
-      <mat-error>{{errorMessages.email.email}}</mat-error>
+    <mat-error>{{errorMessages.email.email}}</mat-error>
     }
   </mat-form-field>
 
   <!-- Password -->
   <mat-form-field appearance="outline" class="w-100 mb-3">
     <mat-label>{{formLabels.password}}</mat-label>
-    <input
-    matInput
-      type="password"
-      placeholder="Enter your password"
-      formControlName="password"
-    />
+    <input matInput type="password" placeholder="Enter your password" formControlName="password" />
 
     @if (loginForm.get('password')?.errors?.['required']) {
-      <mat-error>{{errorMessages.password.required}}</mat-error>
+    <mat-error>{{errorMessages.password.required}}</mat-error>
     }
     @if (loginForm.get('password')?.errors?.['weakPassword']) {
-      <mat-error>{{errorMessages.password.weakPassword}}</mat-error>
+    <mat-error>{{errorMessages.password.weakPassword}}</mat-error>
     }
   </mat-form-field>
 
   <!-- Submit -->
-  <button mat-raised-button color="primary" type="submit" class="w-100 mb-2">
+  <button mat-raised-button color="primary" type="submit" class="w-100 mb-2" [disabled]="loginForm.invalid">
     {{buttonLabels.login}}
   </button>
 
