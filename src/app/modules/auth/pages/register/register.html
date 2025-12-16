@@ -2,14 +2,26 @@
   <h2 class="text-center mb-4">{{pageHeading}}</h2>
 
   <mat-form-field appearance="outline" class="w-100 mb-3">
-    <mat-label>{{formLabels.username}}</mat-label>
-    <input matInput placeholder="Enter your username" formControlName="username" />
+    <mat-label>{{formLabels.first_name}}</mat-label>
+    <input matInput placeholder="Enter your first name" formControlName="first_name" />
 
-    @if (registerForm.get('username')?.errors?.['required']) {
-      <mat-error>{{errorMessages.username.required}}</mat-error>
+    @if (registerForm.get('first_name')?.errors?.['required']) {
+      <mat-error>{{errorMessages.first_name?.required || 'First name is required'}}</mat-error>
     }
-    @if (registerForm.get('username')?.errors?.['minlength']) {
-      <mat-error>{{errorMessages.username.minlength}}</mat-error>
+    @if (registerForm.get('first_name')?.errors?.['minlength']) {
+      <mat-error>{{errorMessages.first_name?.minlength || 'First name must be at least 3 characters'}}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-100 mb-3">
+    <mat-label>{{formLabels.last_name}}</mat-label>
+    <input matInput placeholder="Enter your last name" formControlName="last_name" />
+
+    @if (registerForm.get('last_name')?.errors?.['required']) {
+      <mat-error>{{errorMessages.last_name?.required || 'Last name is required'}}</mat-error>
+    }
+    @if (registerForm.get('last_name')?.errors?.['minlength']) {
+      <mat-error>{{errorMessages.last_name?.minlength || 'Last name must be at least 3 characters'}}</mat-error>
     }
   </mat-form-field>
 

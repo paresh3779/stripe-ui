@@ -4,7 +4,8 @@ export const FORM_LABELS = {
     password: 'Password',
   },
   register: {
-    username: 'Username',
+    first_name: 'First Name',
+    last_name: 'Last Name',
     email: 'Email',
     password: 'Password',
     confirmPassword: 'Confirm Password',

@@ -1,3 +1,5 @@
+import { User } from "./user.model";
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken?: string;
@@ -12,7 +14,8 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  username: string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -24,7 +27,7 @@ export interface LoginResponse {
 }
 
 export interface RegisterResponse {
-  user: any; // Using any for now, should import User from user.model
+  user: User; // Using any for now, should import User from user.model
   tokens: AuthTokens;
 }
 

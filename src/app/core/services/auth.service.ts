@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 import { User } from '../models/user.model';
@@ -15,13 +15,26 @@ import {
   ForgotPasswordRequest,
   ResetPasswordRequest
 } from '../models/auth-tokens.model';
-import { TokenService } from './token.service';
+import { ErrorHandlingService } from './error-handling.service';
+import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { ApiUrlService } from './api-url.service';
 
+/**
+ * AuthService handles authentication-related operations such as login, registration, logout, token refresh, forgot password, and reset password.
+ * It manages user state, authentication status, and communicates with the backend API for authentication tasks.
+ * Laravel Sanctum handles token management via HTTP-only cookies.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_BASE_URL = '/api/auth'; // Adjust based on your API endpoint
+
+
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private errorHandlingService = inject(ErrorHandlingService);
+  private apiUrl = inject(ApiUrlService);
+
 
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
@@ -29,46 +42,47 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private tokenService: TokenService,
-    private router: Router
-  ) {
+  constructor() {
     // Check authentication status on service initialization
     this.checkAuthStatus();
   }
 
   /**
-   * Login user
+   * Login user with email and password.
+   * @param credentials The login request containing email and password.
+   * @returns Observable<LoginResponse> The login response with user data and tokens.
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.API_BASE_URL}/login`, credentials)
+    return this.http.post<LoginResponse>(this.apiUrl.url(API_ENDPOINTS.AUTH.LOGIN), credentials)
       .pipe(
         tap(response => {
           this.handleAuthenticationSuccess(response.user, response.tokens);
         }),
-        catchError(this.handleError)
+        catchError(error => this.errorHandlingService.handleError(error))
       );
   }
 
   /**
-   * Register new user
+   * Register a new user.
+   * @param userData The registration data including first_name, last_name, email, and password.
+   * @returns Observable<RegisterResponse> The registration response with user data and tokens.
    */
   register(userData: RegisterRequest): Observable<RegisterResponse> {
-    return this.http.post<RegisterResponse>(`${this.API_BASE_URL}/register`, userData)
+    return this.http.post<RegisterResponse>(this.apiUrl.url(API_ENDPOINTS.AUTH.REGISTER), userData)
       .pipe(
         tap(response => {
           this.handleAuthenticationSuccess(response.user, response.tokens);
         }),
-        catchError(this.handleError)
+        catchError(error => this.errorHandlingService.handleError(error))
       );
   }
 
   /**
-   * Logout user
+   * Logout user.
+   * @returns Observable<any> The logout response.
    */
   logout(): Observable<any> {
-    return this.http.post(`${this.API_BASE_URL}/logout`, {})
+    return this.http.post(this.apiUrl.url(API_ENDPOINTS.AUTH.LOGOUT), {})
       .pipe(
         tap(() => {
           this.handleLogout();
@@ -82,149 +96,100 @@ export class AuthService {
   }
 
   /**
-   * Refresh access token
+   * Refresh access token.
+   * @returns Observable<RefreshTokenResponse> The refresh token response with new access token.
    */
   refreshToken(): Observable<RefreshTokenResponse> {
-    const refreshToken = this.tokenService.getRefreshToken();
-
-    if (!refreshToken) {
-      return throwError('No refresh token available');
-    }
-
-    return this.http.post<RefreshTokenResponse>(`${this.API_BASE_URL}/refresh`, {
-      refreshToken
-    }).pipe(
-      tap(response => {
-        // Update tokens in cookies
-        const tokens: AuthTokens = {
-          accessToken: response.accessToken,
-          tokenType: response.tokenType,
-          expiresIn: response.expiresIn,
-          issuedAt: new Date()
-        };
-        this.tokenService.setTokens(tokens);
-      }),
-      catchError(error => {
-        this.handleLogout();
-        return throwError(error);
-      })
-    );
+    return this.http.post<RefreshTokenResponse>(this.apiUrl.url(API_ENDPOINTS.AUTH.REFRESH), {})
+      .pipe(
+        tap(response => {
+          // Laravel Sanctum sets the new token in cookie
+        }),
+        catchError(error => {
+          this.handleLogout();
+          return this.errorHandlingService.handleError(error);
+        })
+      );
   }
 
   /**
-   * Forgot password
+   * Send forgot password request.
+   * @param request The forgot password request with email.
+   * @returns Observable<any> The response.
    */
   forgotPassword(request: ForgotPasswordRequest): Observable<any> {
-    return this.http.post(`${this.API_BASE_URL}/forgot-password`, request)
-      .pipe(catchError(this.handleError));
+    return this.http.post(this.apiUrl.url(API_ENDPOINTS.AUTH.FORGOT_PASSWORD), request)
+      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
-   * Reset password
+   * Reset password with token.
+   * @param request The reset password request with token, password, confirmPassword.
+   * @returns Observable<any> The response.
    */
   resetPassword(request: ResetPasswordRequest): Observable<any> {
-    return this.http.post(`${this.API_BASE_URL}/reset-password`, request)
-      .pipe(catchError(this.handleError));
+    return this.http.post(this.apiUrl.url(API_ENDPOINTS.AUTH.RESET_PASSWORD), request)
+      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
-   * Get current user
+   * Get current user.
+   * @returns User | null The current user or null.
    */
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
   /**
-   * Check if user is authenticated
+   * Check if user is authenticated.
+   * @returns boolean True if authenticated.
    */
   isAuthenticated(): boolean {
-    return this.tokenService.isAuthenticated();
+    return this.isAuthenticatedSubject.value;
   }
 
   /**
-   * Check authentication status and update subjects
+   * Check authentication status and update subjects.
    */
   private checkAuthStatus(): void {
-    const isAuth = this.tokenService.isAuthenticated();
-    this.isAuthenticatedSubject.next(isAuth);
-
-    if (isAuth) {
-      // Try to get user profile if authenticated
-      this.getUserProfile().subscribe({
-        next: (user) => {
-          this.currentUserSubject.next(user);
-        },
-        error: () => {
-          // If we can't get user profile, clear authentication
-          this.handleLogout();
-        }
-      });
-    }
+    // Try to get user profile to check authentication
+    this.getUserProfile().subscribe({
+      next: (user) => {
+        this.currentUserSubject.next(user);
+        this.isAuthenticatedSubject.next(true);
+      },
+      error: () => {
+        // If we can't get user profile, user is not authenticated
+        this.currentUserSubject.next(null);
+        this.isAuthenticatedSubject.next(false);
+      }
+    });
   }
 
   /**
-   * Get user profile from API
+   * Get user profile from API.
+   * @returns Observable<User>
    */
   private getUserProfile(): Observable<User> {
-    return this.http.get<User>(`${this.API_BASE_URL}/profile`);
+    return this.http.get<User>(this.apiUrl.url(API_ENDPOINTS.AUTH.PROFILE));
   }
 
   /**
-   * Handle successful authentication
+   * Handle successful authentication.
+   * @param user The user data.
+   * @param tokens The authentication tokens.
    */
   private handleAuthenticationSuccess(user: User, tokens: AuthTokens): void {
-    this.tokenService.setTokens(tokens);
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(true);
   }
 
   /**
-   * Handle logout
+   * Handle logout.
    */
   private handleLogout(): void {
-    this.tokenService.clearTokens();
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
     this.router.navigate(['/auth/login']);
   }
-
-  /**
-   * Handle HTTP errors
-   */
-  private handleError = (error: HttpErrorResponse): Observable<never> => {
-    let errorMessage = 'An unknown error occurred';
-
-    if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMessage = error.error.message;
-    } else {
-      // Server-side error
-      switch (error.status) {
-        case 400:
-          errorMessage = 'Bad request. Please check your input.';
-          break;
-        case 401:
-          errorMessage = 'Unauthorized. Please login again.';
-          this.handleLogout();
-          break;
-        case 403:
-          errorMessage = 'Forbidden. You do not have permission.';
-          break;
-        case 404:
-          errorMessage = 'Resource not found.';
-          break;
-        case 422:
-          errorMessage = 'Validation error. Please check your input.';
-          break;
-        case 500:
-          errorMessage = 'Internal server error. Please try again later.';
-          break;
-        default:
-          errorMessage = `Error ${error.status}: ${error.message}`;
-      }
-    }
-
-    console.error('AuthService Error:', error);
-    return throwError(errorMessage);
-  };
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -9,7 +9,12 @@ import { FORM_LABELS } from '@core/constants/form-labels';
 import { PAGE_HEADINGS } from '@core/constants/page-headings';
 import { BUTTON_LABELS } from '@core/constants/button-labels';
 import { ROUTE_LABELS } from '@core/constants/button-labels';
+import { AuthService } from '@core/services/auth.service';
 
+/**
+ * ForgotPassword component handles forgot password functionality.
+ * It provides a form for email input and calls the AuthService for password reset request.
+ */
 @Component({
   selector: 'app-forgot-password',
   imports: [
@@ -23,23 +28,43 @@ import { ROUTE_LABELS } from '@core/constants/button-labels';
   styleUrl: './forgot-password.scss',
 })
 export class ForgotPassword {
-forgotForm: FormGroup;
-errorMessages = VALIDATION_MESSAGES;
-formLabels = FORM_LABELS.forgotPassword;
-pageHeading = PAGE_HEADINGS.auth.forgotPassword;
-buttonLabels = BUTTON_LABELS.auth;
-routeLabels = ROUTE_LABELS.auth;
+  forgotForm!: FormGroup;
+  errorMessages = VALIDATION_MESSAGES;
+  formLabels = FORM_LABELS.forgotPassword;
+  pageHeading = PAGE_HEADINGS.auth.forgotPassword;
+  buttonLabels = BUTTON_LABELS.auth;
+  routeLabels = ROUTE_LABELS.auth;
 
-  constructor(private fb: FormBuilder) {
+  private errorMessage: string = '';
+  private successMessage: string = '';
+
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+
+  /**
+   * Initializes the forgot password form.
+   * Creates a form group with an email field and sets up form validation.
+   */
+  ngOnInit() {
     this.forgotForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]]
     });
   }
 
+  /**
+   * Handles the forgot password form submission.
+   * Validates the form and calls AuthService.forgotPassword().
+   */
   sendResetLink() {
     if (this.forgotForm.valid) {
-      console.log(this.forgotForm.value);
-      // Call AuthService.forgotPassword() here
+      this.authService.forgotPassword(this.forgotForm.value).subscribe({
+        next: () => {
+          this.successMessage = 'Password reset link sent to your email.';
+        },
+        error: (error) => {
+          this.errorMessage = error;
+        }
+      });
     }
   }
 }

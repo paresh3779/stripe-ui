@@ -1,0 +1,9 @@
+<!-- Main layout with navbar, sidebar, content, and footer -->
+<app-navbar></app-navbar>
+<div class="d-flex">
+  <app-sidebar></app-sidebar>
+  <div class="main-content flex-grow-1 p-3">
+    <router-outlet></router-outlet>
+  </div>
+</div>
+<app-footer></app-footer>

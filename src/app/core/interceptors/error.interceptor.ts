@@ -1,20 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
-import { TokenService } from '../services/token.service';
-import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
 
-  constructor(
-    private tokenService: TokenService,
-    private authService: AuthService,
-    private router: Router
-  ) { }
+  private router = inject(Router);
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(request).pipe(
@@ -27,20 +21,22 @@ export class ErrorInterceptor implements HttpInterceptor {
   /**
    * Handle HTTP errors
    */
-  private handleError(error: HttpErrorResponse, request: HttpRequest<any>, next: HttpHandler): Observable<never> {
+  private handleError(error: HttpErrorResponse, request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Skip error handling for auth endpoints that should not trigger logout
     const skipLogoutUrls = [
-      '/api/auth/login',
-      '/api/auth/register',
-      '/api/auth/forgot-password',
-      '/api/auth/reset-password'
+      '/api/login',
+      '/api/register',
+      '/api/forgot-password',
+      '/api/reset-password',
+      '/api/refresh',
+      '/api/logout'
     ];
 
     const shouldSkipLogout = skipLogoutUrls.some(url => request.url.includes(url));
 
     if (error.status === 401 && !shouldSkipLogout) {
-      // Token expired or invalid, clear authentication and redirect to login
-      this.authService.logout().subscribe();
+      // Token expired, redirect to login
+      this.router.navigate(['/auth/login']);
       return throwError(error);
     }
 

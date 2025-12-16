@@ -1,75 +1,81 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
 import { User, UserProfile, UpdateUserRequest } from '../models/user.model';
+import { ErrorHandlingService } from './error-handling.service';
+import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { ApiUrlService } from './api-url.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private readonly API_BASE_URL = '/api/users'; // Adjust based on your API endpoint
 
-  constructor(private http: HttpClient) { }
+  private http = inject(HttpClient);
+  private errorHandlingService = inject(ErrorHandlingService);
+  private apiUrl = inject(ApiUrlService);
+
+  constructor() { }
 
   /**
    * Get current user profile
    */
   getProfile(): Observable<UserProfile> {
-    return this.http.get<UserProfile>(`${this.API_BASE_URL}/profile`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<UserProfile>(this.apiUrl.url(API_ENDPOINTS.USERS.PROFILE))
+      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
    * Update user profile
    */
   updateProfile(userData: UpdateUserRequest): Observable<UserProfile> {
-    return this.http.put<UserProfile>(`${this.API_BASE_URL}/profile`, userData)
-      .pipe(catchError(this.handleError));
+    return this.http.put<UserProfile>(this.apiUrl.url(API_ENDPOINTS.USERS.PROFILE), userData)
+      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
    * Change user password
    */
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.API_BASE_URL}/change-password`, {
+    return this.http.post(this.apiUrl.url(API_ENDPOINTS.USERS.CHANGE_PASSWORD), {
       currentPassword,
       newPassword
-    }).pipe(catchError(this.handleError));
+    }).pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
    * Get user by ID (admin functionality)
    */
   getUserById(id: string): Observable<User> {
-    return this.http.get<User>(`${this.API_BASE_URL}/${id}`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<User>(this.apiUrl.url(API_ENDPOINTS.USERS.GET_USER(id)))
+      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
    * Get all users (admin functionality)
    */
   getUsers(page: number = 1, limit: number = 10): Observable<{ users: User[]; total: number }> {
-    return this.http.get<{ users: User[]; total: number }>(`${this.API_BASE_URL}`, {
+    return this.http.get<{ users: User[]; total: number }>(this.apiUrl.url(API_ENDPOINTS.USERS.GET_USERS), {
       params: { page: page.toString(), limit: limit.toString() }
-    }).pipe(catchError(this.handleError));
+    }).pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
    * Update user (admin functionality)
    */
   updateUser(id: string, userData: UpdateUserRequest): Observable<User> {
-    return this.http.put<User>(`${this.API_BASE_URL}/${id}`, userData)
-      .pipe(catchError(this.handleError));
+    return this.http.put<User>(this.apiUrl.url(API_ENDPOINTS.USERS.UPDATE_USER(id)), userData)
+      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
    * Delete user (admin functionality)
    */
   deleteUser(id: string): Observable<any> {
-    return this.http.delete(`${this.API_BASE_URL}/${id}`)
-      .pipe(catchError(this.handleError));
+    return this.http.delete(this.apiUrl.url(API_ENDPOINTS.USERS.DELETE_USER(id)))
+      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
@@ -79,54 +85,15 @@ export class UserService {
     const formData = new FormData();
     formData.append('avatar', file);
 
-    return this.http.post<{ avatarUrl: string }>(`${this.API_BASE_URL}/avatar`, formData)
-      .pipe(catchError(this.handleError));
+    return this.http.post<{ avatarUrl: string }>(this.apiUrl.url(API_ENDPOINTS.USERS.UPLOAD_AVATAR), formData)
+      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
 
   /**
    * Delete user avatar
    */
   deleteAvatar(): Observable<any> {
-    return this.http.delete(`${this.API_BASE_URL}/avatar`)
-      .pipe(catchError(this.handleError));
+    return this.http.delete(this.apiUrl.url(API_ENDPOINTS.USERS.DELETE_AVATAR))
+      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
   }
-
-  /**
-   * Handle HTTP errors
-   */
-  private handleError = (error: HttpErrorResponse): Observable<never> => {
-    let errorMessage = 'An unknown error occurred';
-
-    if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMessage = error.error.message;
-    } else {
-      // Server-side error
-      switch (error.status) {
-        case 400:
-          errorMessage = 'Bad request. Please check your input.';
-          break;
-        case 401:
-          errorMessage = 'Unauthorized. Please login again.';
-          break;
-        case 403:
-          errorMessage = 'Forbidden. You do not have permission.';
-          break;
-        case 404:
-          errorMessage = 'User not found.';
-          break;
-        case 422:
-          errorMessage = 'Validation error. Please check your input.';
-          break;
-        case 500:
-          errorMessage = 'Internal server error. Please try again later.';
-          break;
-        default:
-          errorMessage = `Error ${error.status}: ${error.message}`;
-      }
-    }
-
-    console.error('UserService Error:', error);
-    return throwError(errorMessage);
-  };
 }
