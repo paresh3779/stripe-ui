@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 
 import { AUTH_MESSAGES } from '../constants/validation-messages';
+import { NotificationService } from './notification.service';
 
 /**
  * ErrorHandlingService provides common error handling utilities for HTTP requests.
@@ -12,6 +13,8 @@ import { AUTH_MESSAGES } from '../constants/validation-messages';
   providedIn: 'root'
 })
 export class ErrorHandlingService {
+
+  private notification = inject(NotificationService);
 
   /**
    * Handle HTTP errors and return user-friendly error messages.
@@ -26,12 +29,17 @@ export class ErrorHandlingService {
       errorMessage = error.error.message;
     } else {
       // Server-side error
-      if (error.status in AUTH_MESSAGES.ERROR_MESSAGE) {
+      if (error.error && typeof error.error === 'object' && error.error.message) {
+        errorMessage = error.error.message;
+      } else if (error.status in AUTH_MESSAGES.ERROR_MESSAGE) {
         errorMessage = AUTH_MESSAGES.ERROR_MESSAGE[error.status as keyof typeof AUTH_MESSAGES.ERROR_MESSAGE] as string;
       } else {
         errorMessage = AUTH_MESSAGES.ERROR_MESSAGE.default(error.status, error.message);
       }
     }
+
+    // Show error notification
+    this.notification.error(errorMessage);
 
     console.error('ErrorHandlingService Error:', error);
     return throwError(() => errorMessage);

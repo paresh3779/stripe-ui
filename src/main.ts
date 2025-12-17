@@ -1,4 +1,5 @@
 import { bootstrapApplication } from '@angular/platform-browser';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
@@ -17,6 +18,7 @@ async function bootstrap(): Promise<void> {
     // Bootstrap Angular application
     await bootstrapApplication(App, {
       providers: [
+        provideAnimationsAsync(),
         provideHttpClient(withInterceptorsFromDi()),
         provideRouter(routes),
         { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

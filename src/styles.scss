@@ -162,3 +162,21 @@ a:hover {
   color: color.adjust($primary-color, $lightness: -10%);
   text-decoration: underline;
 }
+
+// ===============================
+// 10. Snackbar Notifications
+// ===============================
+.success-snackbar {
+  background-color: #4caf50 !important; // Green for success
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: $error-color !important; // Red for error
+  color: white !important;
+}
+
+.info-snackbar {
+  background-color: $primary-color !important; // Primary for info
+  color: white !important;
+}

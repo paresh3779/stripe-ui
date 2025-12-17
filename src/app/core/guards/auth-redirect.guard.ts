@@ -15,11 +15,14 @@ export class AuthRedirectGuard implements CanActivate {
   private router = inject(Router);
 
   canActivate(): boolean {
+    console.log("coming")
     if (this.authService.isAuthenticated()) {
+      console.log("20");
       // User is logged in, redirect to main
       this.router.navigate(['/main']);
       return false;
     }
+    console.log("25");
     // User is not logged in, allow access to auth pages
     return true;
   }

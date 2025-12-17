@@ -15,9 +15,11 @@ import {
   ForgotPasswordRequest,
   ResetPasswordRequest
 } from '../models/auth-tokens.model';
+import { AUTH_MESSAGES } from '../constants/validation-messages';
 import { ErrorHandlingService } from './error-handling.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { ApiUrlService } from './api-url.service';
+import { NotificationService } from './notification.service';
 
 /**
  * AuthService handles authentication-related operations such as login, registration, logout, token refresh, forgot password, and reset password.
@@ -34,6 +36,7 @@ export class AuthService {
   private router = inject(Router);
   private errorHandlingService = inject(ErrorHandlingService);
   private apiUrl = inject(ApiUrlService);
+  private notification = inject(NotificationService);
 
 
   private currentUserSubject = new BehaviorSubject<User | null>(null);
@@ -57,6 +60,7 @@ export class AuthService {
       .pipe(
         tap(response => {
           this.handleAuthenticationSuccess(response.user, response.tokens);
+          this.notification.success(AUTH_MESSAGES.SUCCESS_MESSAGE.login);
         }),
         catchError(error => this.errorHandlingService.handleError(error))
       );
@@ -72,6 +76,7 @@ export class AuthService {
       .pipe(
         tap(response => {
           this.handleAuthenticationSuccess(response.user, response.tokens);
+          this.notification.success(AUTH_MESSAGES.SUCCESS_MESSAGE.register);
         }),
         catchError(error => this.errorHandlingService.handleError(error))
       );
@@ -119,7 +124,10 @@ export class AuthService {
    */
   forgotPassword(request: ForgotPasswordRequest): Observable<any> {
     return this.http.post(this.apiUrl.url(API_ENDPOINTS.AUTH.FORGOT_PASSWORD), request)
-      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
+      .pipe(
+        tap(() => this.notification.info(AUTH_MESSAGES.SUCCESS_MESSAGE.forgotPassword)),
+        catchError(error => this.errorHandlingService.handleError(error))
+      );
   }
 
   /**
@@ -129,7 +137,10 @@ export class AuthService {
    */
   resetPassword(request: ResetPasswordRequest): Observable<any> {
     return this.http.post(this.apiUrl.url(API_ENDPOINTS.AUTH.RESET_PASSWORD), request)
-      .pipe(catchError(error => this.errorHandlingService.handleError(error)));
+      .pipe(
+        tap(() => this.notification.success(AUTH_MESSAGES.SUCCESS_MESSAGE.resetPassword)),
+        catchError(error => this.errorHandlingService.handleError(error))
+      );
   }
 
   /**
@@ -182,6 +193,7 @@ export class AuthService {
   private handleAuthenticationSuccess(user: User, tokens: AuthTokens): void {
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(true);
+    setTimeout(() => this.router.navigate(['/main']), 0);
   }
 
   /**

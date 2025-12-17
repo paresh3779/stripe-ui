@@ -6,7 +6,7 @@ export const API_ENDPOINTS = {
     REFRESH: 'refresh',
     FORGOT_PASSWORD: 'forgot-password',
     RESET_PASSWORD: 'reset-password',
-    PROFILE: 'profile'
+    PROFILE: 'user'
   },
   USERS: {
     BASE: 'users',
