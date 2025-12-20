@@ -1,83 +1,61 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
 
+export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
 
-@Injectable()
-export class ErrorInterceptor implements HttpInterceptor {
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
 
-  private router = inject(Router);
+      // Routes that should NOT trigger logout
+      const skipLogoutPaths = [
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/reset-password',
+        '/logout'
+      ];
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    return next.handle(request).pipe(
-      catchError((error: HttpErrorResponse) => {
-        return this.handleError(error, request, next);
-      })
-    );
-  }
+      const shouldSkipLogout = skipLogoutPaths.some(path =>
+        req.url.includes(path)
+      );
 
-  /**
-   * Handle HTTP errors
-   */
-  private handleError(error: HttpErrorResponse, request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Skip error handling for auth endpoints that should not trigger logout
-    const skipLogoutUrls = [
-      '/api/login',
-      '/api/register',
-      '/api/forgot-password',
-      '/api/reset-password',
-      '/api/refresh',
-      '/api/logout'
-    ];
+      // 🔐 Unauthorized → token expired / revoked
+      if (error.status === 401 && !shouldSkipLogout) {
+        router.navigate(['/auth/login']);
+      }
 
-    const shouldSkipLogout = skipLogoutUrls.some(url => request.url.includes(url));
+      // 🚫 Forbidden
+      if (error.status === 403) {
+        console.warn('Forbidden request:', req.url);
+      }
 
-    if (error.status === 401 && !shouldSkipLogout) {
-      // Token expired, redirect to login
-      this.router.navigate(['/auth/login']);
-      return throwError(error);
-    }
+      // 🌐 Network error
+      if (error.status === 0) {
+        console.error('Network error – check backend or CORS');
+      }
 
-    if (error.status === 403) {
-      // Forbidden - user doesn't have permission
-      console.warn('Access forbidden:', error);
-      // You might want to show a notification here
-    }
+      // 🔥 Server error
+      if (error.status >= 500) {
+        console.error('Server error:', error.message);
+      }
 
-    if (error.status === 0) {
-      // Network error
-      console.error('Network error - please check your connection');
-    }
+      logHttpError(error);
+      return throwError(() => error);
+    })
+  );
+};
 
-    if (error.status >= 500) {
-      // Server error
-      console.error('Server error:', error);
-    }
-
-    // Log error details for debugging
-    this.logError(error);
-
-    // Re-throw the error so components can handle it
-    return throwError(error);
-  }
-
-  /**
-   * Log error details for debugging
-   */
-  private logError(error: HttpErrorResponse): void {
-    const errorDetails = {
-      status: error.status,
-      statusText: error.statusText,
-      url: error.url,
-      message: error.message,
-      timestamp: new Date().toISOString()
-    };
-
-    console.error('HTTP Error:', errorDetails);
-
-    // In production, you might want to send this to an error reporting service
-    // this.errorReportingService.reportError(errorDetails);
-  }
+/**
+ * Log error details (can be extended to Sentry, etc.)
+ */
+function logHttpError(error: HttpErrorResponse): void {
+  console.error('HTTP Error', {
+    status: error.status,
+    url: error.url,
+    message: error.message,
+    time: new Date().toISOString()
+  });
 }

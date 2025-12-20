@@ -10,7 +10,7 @@ export const routes: Routes = [
         path: 'main',
         loadChildren: () => import('./modules/layout/layout.module').then(m => m.LayoutModule)
     },
-    { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
+    { path: '', redirectTo: '/main', pathMatch: 'full' },
 
     // Optional wildcard redirect
     { path: '**', redirectTo: '/auth/login' }

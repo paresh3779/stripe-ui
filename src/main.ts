@@ -1,33 +1,23 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
 
 import { App } from './app/app';
-import { routes } from './app/app.routes';
+import { appConfig } from './app/app.config';
 import { AppConfig } from './app/config.service';
-import { AuthInterceptor } from './app/core/interceptors/auth.interceptor';
-import { ErrorInterceptor } from './app/core/interceptors/error.interceptor';
 
 async function bootstrap(): Promise<void> {
   try {
     // Create and load runtime configuration
-    const appConfig = new AppConfig();
-    await appConfig.load();
+    const runtimeConfig = new AppConfig();
+    await runtimeConfig.load();
 
-    // Bootstrap Angular application
+    // Bootstrap Angular application with appConfig
     await bootstrapApplication(App, {
       providers: [
-        provideAnimationsAsync(),
-        provideHttpClient(withInterceptorsFromDi()),
-        provideRouter(routes),
-        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-        { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
-        { provide: AppConfig, useValue: appConfig }
+        ...appConfig.providers,
+        { provide: AppConfig, useValue: runtimeConfig }
       ]
     });
 
-    // Optional: keep this only in development
     console.info('Angular application bootstrapped');
   } catch (error) {
     console.error('Application bootstrap failed', error);

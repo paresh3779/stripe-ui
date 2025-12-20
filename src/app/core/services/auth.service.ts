@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
+import { tap, catchError, switchMap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 import { User } from '../models/user.model';
@@ -46,8 +46,8 @@ export class AuthService {
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
   constructor() {
-    // Check authentication status on service initialization
-    this.checkAuthStatus();
+    // Authentication state is managed by login/register/logout methods
+    // No need to check on initialization as it causes race condition with guards
   }
 
   /**
@@ -56,8 +56,11 @@ export class AuthService {
    * @returns Observable<LoginResponse> The login response with user data and tokens.
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(this.apiUrl.url(API_ENDPOINTS.AUTH.LOGIN), credentials)
-      .pipe(
+    return this.http
+      .post<LoginResponse>(
+        this.apiUrl.url(API_ENDPOINTS.AUTH.LOGIN),
+        credentials
+      ).pipe(
         tap(response => {
           this.handleAuthenticationSuccess(response.user, response.tokens);
           this.notification.success(AUTH_MESSAGES.SUCCESS_MESSAGE.login);
@@ -72,14 +75,13 @@ export class AuthService {
    * @returns Observable<RegisterResponse> The registration response with user data and tokens.
    */
   register(userData: RegisterRequest): Observable<RegisterResponse> {
-    return this.http.post<RegisterResponse>(this.apiUrl.url(API_ENDPOINTS.AUTH.REGISTER), userData)
-      .pipe(
-        tap(response => {
-          this.handleAuthenticationSuccess(response.user, response.tokens);
-          this.notification.success(AUTH_MESSAGES.SUCCESS_MESSAGE.register);
-        }),
-        catchError(error => this.errorHandlingService.handleError(error))
-      );
+    return this.http.post<RegisterResponse>(this.apiUrl.url(API_ENDPOINTS.AUTH.REGISTER), userData).pipe(
+      tap(response => {
+        this.handleAuthenticationSuccess(response.user, response.tokens);
+        this.notification.success(AUTH_MESSAGES.SUCCESS_MESSAGE.register);
+      }),
+      catchError(error => this.errorHandlingService.handleError(error))
+    );
   }
 
   /**
@@ -95,7 +97,7 @@ export class AuthService {
         catchError(error => {
           // Even if logout fails on server, clear local state
           this.handleLogout();
-          return throwError(error);
+          return throwError(() => error);
         })
       );
   }
@@ -160,20 +162,27 @@ export class AuthService {
   }
 
   /**
-   * Check authentication status and update subjects.
+   * Initialize authentication on app start.
+   * Called by APP_INITIALIZER before routing begins.
+   * @returns Promise<void>
    */
-  private checkAuthStatus(): void {
-    // Try to get user profile to check authentication
-    this.getUserProfile().subscribe({
-      next: (user) => {
-        this.currentUserSubject.next(user);
-        this.isAuthenticatedSubject.next(true);
-      },
-      error: () => {
-        // If we can't get user profile, user is not authenticated
-        this.currentUserSubject.next(null);
-        this.isAuthenticatedSubject.next(false);
-      }
+  initializeAuth(): Promise<void> {
+    console.log('[AuthService] Initializing auth on app start...');
+    return new Promise((resolve) => {
+      this.getUserProfile().subscribe({
+        next: (user) => {
+          console.log('[AuthService] User authenticated on init:', user);
+          this.currentUserSubject.next(user);
+          this.isAuthenticatedSubject.next(true);
+          resolve();
+        },
+        error: () => {
+          console.log('[AuthService] User not authenticated on init');
+          this.currentUserSubject.next(null);
+          this.isAuthenticatedSubject.next(false);
+          resolve();
+        }
+      });
     });
   }
 
@@ -181,7 +190,7 @@ export class AuthService {
    * Get user profile from API.
    * @returns Observable<User>
    */
-  private getUserProfile(): Observable<User> {
+  getUserProfile(): Observable<User> {
     return this.http.get<User>(this.apiUrl.url(API_ENDPOINTS.AUTH.PROFILE));
   }
 
@@ -191,8 +200,10 @@ export class AuthService {
    * @param tokens The authentication tokens.
    */
   private handleAuthenticationSuccess(user: User, tokens: AuthTokens): void {
+    console.log('[AuthService] handleAuthenticationSuccess - Setting user and auth flag to true');
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(true);
+    console.log('[AuthService] isAuthenticated after login:', this.isAuthenticatedSubject.value);
     setTimeout(() => this.router.navigate(['/main']), 0);
   }
 
