@@ -1,12 +1,32 @@
 import { Injectable } from '@angular/core';
 
+export interface AppConfigModel {
+  API_URL: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AppConfig {
-  settings: any;
 
-  load() {
-    return fetch('/config.json')
-      .then(res => res.json())
-      .then(data => this.settings = data);
+  private config: Partial<AppConfigModel> = {};
+
+  async load(): Promise<void> {
+    try {
+      const response = await fetch('config.json');
+
+      if (!response.ok) {
+        console.warn('[AppConfig] config.json not found. Using defaults.');
+        return;
+      }
+
+      this.config = await response.json();
+    } catch (error) {
+      console.error('[AppConfig] Failed to load config.json', error);
+      this.config = {};
+    }
+  }
+
+  /** Base API URL */
+  get apiUrl(): string {
+    return this.config.API_URL ?? '/api';
   }
 }

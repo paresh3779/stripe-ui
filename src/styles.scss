@@ -1,10 +1,8 @@
-
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
+// ===============================
+// 1. Angular Material 3 Theme
+// ===============================
 @use '@angular/material' as mat;
+@use "sass:color";
 
 html {
   @include mat.theme((
@@ -18,22 +16,167 @@ html {
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
   color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
   background-color: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
   margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
 }
-/* You can add global styles to this file, and also import other style files */
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+// ===============================
+// 2. Global Variables
+// ===============================
+$primary-color: #3f51b5; // Azure palette fallback
+$secondary-color: #ff4081;
+$error-color: #f44336;
+$card-border-radius: 12px;
+$card-padding: 1.5rem;
+
+// ===============================
+// 3. Typography & Headings
+// ===============================
+h1,h2,h3,h4,h5,h6 {
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #222;
+}
+
+// ===============================
+// 4. Utility Classes
+// ===============================
+.vh-100 { height: 100vh !important; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+.text-center { text-align: center !important; }
+
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+
+// ===============================
+// 5. Mat Card Styles
+// ===============================
+mat-card {
+  border-radius: $card-border-radius;
+  padding: $card-padding;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  background-color: var(--mat-sys-surface);
+}
+
+// ===============================
+// 6. Forms
+// ===============================
+input, textarea, select {
+  font-size: 14px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.3s;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: $primary-color;
+  outline: none;
+}
+
+label {
+  font-weight: 500;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.form-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.mat-error {
+  font-size: 0.8rem;
+  color: $error-color;
+}
+
+// ===============================
+// 7. Buttons
+// ===============================
+button {
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:focus { outline: none; }
+
+button.mat-raised-button.mat-primary {
+  background-color: $primary-color;
+  color: #fff;
+}
+
+button.mat-raised-button.mat-accent {
+  background-color: $secondary-color;
+  color: #fff;
+}
+
+// ===============================
+// 8. Auth Layout Specific
+// ===============================
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: var(--mat-sys-surface-variant);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  border-radius: $card-border-radius;
+  padding: 2rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 576px) {
+  .auth-card { padding: 1rem; margin: 1rem; }
+}
+
+// ===============================
+// 9. Links
+// ===============================
+a {
+  color: $primary-color;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: color.adjust($primary-color, $lightness: -10%);
+  text-decoration: underline;
+}
+
+// ===============================
+// 10. Snackbar Notifications
+// ===============================
+.success-snackbar {
+  background-color: #4caf50 !important; // Green for success
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: $error-color !important; // Red for error
+  color: white !important;
+}
+
+.info-snackbar {
+  background-color: $primary-color !important; // Primary for info
+  color: white !important;
+}

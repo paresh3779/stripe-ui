@@ -1,10 +1,27 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
+
 import { App } from './app/app';
+import { appConfig } from './app/app.config';
 import { AppConfig } from './app/config.service';
 
-const appConfigService = new AppConfig();
-appConfigService.load().then(() => {
-  bootstrapApplication(App, appConfig)
-    .catch((err) => console.error(err));
-});
+async function bootstrap(): Promise<void> {
+  try {
+    // Create and load runtime configuration
+    const runtimeConfig = new AppConfig();
+    await runtimeConfig.load();
+
+    // Bootstrap Angular application with appConfig
+    await bootstrapApplication(App, {
+      providers: [
+        ...appConfig.providers,
+        { provide: AppConfig, useValue: runtimeConfig }
+      ]
+    });
+
+    console.info('Angular application bootstrapped');
+  } catch (error) {
+    console.error('Application bootstrap failed', error);
+  }
+}
+
+bootstrap();

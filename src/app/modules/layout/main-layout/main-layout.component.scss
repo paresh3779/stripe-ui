@@ -1,0 +1,6 @@
+/* Main layout styles */
+.main-content {
+  margin-left: 250px; /* Adjust for sidebar width */
+  min-height: calc(100vh - 56px - 70px); /* Adjust for navbar and footer heights */
+}
+
