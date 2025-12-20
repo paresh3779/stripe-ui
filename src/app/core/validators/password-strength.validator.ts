@@ -1,5 +1,9 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
+/**
+ * Validates password strength (min 8 chars, uppercase, lowercase, number, special char).
+ * Returns { weakPassword: true } if validation fails.
+ */
 export function passwordStrengthValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const value = control.value;
@@ -8,13 +12,10 @@ export function passwordStrengthValidator(): ValidatorFn {
       return null;
     }
 
-    // At least:
-    // 1 uppercase, 1 lowercase, 1 number, 1 special char, minimum 8 chars
+    // Requires: 8+ chars, uppercase, lowercase, digit, special char (@$!%*?&)
     const strongPasswordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    return strongPasswordRegex.test(value)
-      ? null
-      : { weakPassword: true };
+    return strongPasswordRegex.test(value) ? null : { weakPassword: true };
   };
 }

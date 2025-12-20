@@ -1,3 +1,4 @@
+/** User model with authentication and profile data */
 export interface User {
   id: string;
   username: string;
@@ -11,9 +12,10 @@ export interface User {
   updatedAt: Date;
 }
 
-export interface UserProfile extends Omit<User, 'password'> {
-}
+/** User profile (excludes sensitive fields) */
+export interface UserProfile extends Omit<User, 'password'> {}
 
+/** Update user request (all fields optional) */
 export interface UpdateUserRequest {
   username?: string;
   email?: string;

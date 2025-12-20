@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiUrlService } from './api-url.service';
+import { API_ENDPOINTS } from '../constants/api-endpoints';
 import {
   Product,
   Price,
@@ -9,80 +10,102 @@ import {
   PromoCode,
   CheckoutSession
 } from '../interfaces/stripe.interface';
+import { ApiResponse } from '../interfaces/api-response.interface';
 
+/**
+ * Stripe Checkout service for product purchases with optional discounts.
+ * Supports: Basic checkout, Promo codes, and Coupons.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class StripeCheckoutService {
-  private http = inject(HttpClient);
-  private apiUrlService = inject(ApiUrlService);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrlService = inject(ApiUrlService);
 
-  getProducts(): Observable<{ success: boolean; data: Product[] }> {
-    return this.http.get<{ success: boolean; data: Product[] }>(
-      this.apiUrlService.url('stripe/checkout/basic/products')
+  // ==================== Basic Checkout ====================
+
+  /** Get all products for basic checkout */
+  getProducts(): Observable<ApiResponse<Product[]>> {
+    return this.http.get<ApiResponse<Product[]>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.BASIC.PRODUCTS)
     );
   }
 
-  getProduct(productId: string): Observable<{ success: boolean; data: Product }> {
-    return this.http.get<{ success: boolean; data: Product }>(
-      this.apiUrlService.url(`stripe/checkout/basic/products/${productId}`)
+  /** Get single product by ID */
+  getProduct(productId: string): Observable<ApiResponse<Product>> {
+    return this.http.get<ApiResponse<Product>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.BASIC.PRODUCT(productId))
     );
   }
 
-  createCheckoutSession(priceId: string): Observable<{ success: boolean; data: CheckoutSession }> {
-    return this.http.post<{ success: boolean; data: CheckoutSession }>(
-      this.apiUrlService.url('stripe/checkout/basic/create-session'),
+  /** Create Stripe checkout session and return redirect URL */
+  createCheckoutSession(priceId: string): Observable<ApiResponse<CheckoutSession>> {
+    return this.http.post<ApiResponse<CheckoutSession>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.BASIC.CREATE_SESSION),
       { price_id: priceId }
     );
   }
 
-  getProductsWithPromoCode(): Observable<{ success: boolean; data: Product[] }> {
-    return this.http.get<{ success: boolean; data: Product[] }>(
-      this.apiUrlService.url('stripe/checkout/promocode/products')
+  // ==================== Promo Code Checkout ====================
+
+  /** Get all products for promo code checkout */
+  getProductsWithPromoCode(): Observable<ApiResponse<Product[]>> {
+    return this.http.get<ApiResponse<Product[]>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.PROMOCODE.PRODUCTS)
     );
   }
 
-  getProductWithPromoCode(productId: string): Observable<{ success: boolean; data: Product }> {
-    return this.http.get<{ success: boolean; data: Product }>(
-      this.apiUrlService.url(`stripe/checkout/promocode/products/${productId}`)
+  /** Get single product by ID for promo code checkout */
+  getProductWithPromoCode(productId: string): Observable<ApiResponse<Product>> {
+    return this.http.get<ApiResponse<Product>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.PROMOCODE.PRODUCT(productId))
     );
   }
 
-  validatePromoCode(code: string): Observable<{ success: boolean; data: { valid: boolean; promoCode: PromoCode; coupon: Coupon } }> {
-    return this.http.post<{ success: boolean; data: { valid: boolean; promoCode: PromoCode; coupon: Coupon } }>(
-      this.apiUrlService.url('stripe/checkout/promocode/validate-promocode'),
+  /** Validate promo code and return coupon details */
+  validatePromoCode(code: string): Observable<ApiResponse<{ valid: boolean; promoCode: PromoCode; coupon: Coupon }>> {
+    return this.http.post<ApiResponse<{ valid: boolean; promoCode: PromoCode; coupon: Coupon }>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.PROMOCODE.VALIDATE),
       { code }
     );
   }
 
-  createCheckoutSessionWithPromoCode(priceId: string, promoCode: string): Observable<{ success: boolean; data: CheckoutSession }> {
-    return this.http.post<{ success: boolean; data: CheckoutSession }>(
-      this.apiUrlService.url('stripe/checkout/promocode/create-session'),
+  /** Create checkout session with promo code applied */
+  createCheckoutSessionWithPromoCode(priceId: string, promoCode: string): Observable<ApiResponse<CheckoutSession>> {
+    return this.http.post<ApiResponse<CheckoutSession>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.PROMOCODE.CREATE_SESSION),
       { price_id: priceId, promo_code: promoCode }
     );
   }
 
-  getProductsWithCoupon(): Observable<{ success: boolean; data: Product[] }> {
-    return this.http.get<{ success: boolean; data: Product[] }>(
-      this.apiUrlService.url('stripe/checkout/coupon/products')
+  // ==================== Coupon Checkout ====================
+
+  /** Get all products for coupon checkout */
+  getProductsWithCoupon(): Observable<ApiResponse<Product[]>> {
+    return this.http.get<ApiResponse<Product[]>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.COUPON.PRODUCTS)
     );
   }
 
-  getProductWithCoupon(productId: string): Observable<{ success: boolean; data: Product }> {
-    return this.http.get<{ success: boolean; data: Product }>(
-      this.apiUrlService.url(`stripe/checkout/coupon/products/${productId}`)
+  /** Get single product by ID for coupon checkout */
+  getProductWithCoupon(productId: string): Observable<ApiResponse<Product>> {
+    return this.http.get<ApiResponse<Product>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.COUPON.PRODUCT(productId))
     );
   }
 
-  getCoupons(): Observable<{ success: boolean; data: Coupon[] }> {
-    return this.http.get<{ success: boolean; data: Coupon[] }>(
-      this.apiUrlService.url('stripe/checkout/coupon/coupons')
+  /** Get all available coupons */
+  getCoupons(): Observable<ApiResponse<Coupon[]>> {
+    return this.http.get<ApiResponse<Coupon[]>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.COUPON.COUPONS)
     );
   }
 
-  createCheckoutSessionWithCoupon(priceId: string, couponId: string): Observable<{ success: boolean; data: CheckoutSession }> {
-    return this.http.post<{ success: boolean; data: CheckoutSession }>(
-      this.apiUrlService.url('stripe/checkout/coupon/create-session'),
+  /** Create checkout session with coupon applied */
+  createCheckoutSessionWithCoupon(priceId: string, couponId: string): Observable<ApiResponse<CheckoutSession>> {
+    return this.http.post<ApiResponse<CheckoutSession>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.COUPON.CREATE_SESSION),
       { price_id: priceId, coupon_id: couponId }
     );
   }

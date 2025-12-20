@@ -1,3 +1,4 @@
+/** Stripe product with pricing options */
 export interface Product {
   id: string;
   name: string;
@@ -10,12 +11,13 @@ export interface Product {
   prices?: Price[];
 }
 
+/** Pricing option for a product (one-time or recurring) */
 export interface Price {
   id: string;
   product_id: string;
   stripe_price_id: string;
   description: string;
-  amount: number;
+  amount: number; // Amount in cents
   currency: string;
   type: string;
   interval?: string;
@@ -25,18 +27,20 @@ export interface Price {
   active: boolean;
 }
 
+/** Discount coupon for checkout */
 export interface Coupon {
   id: string;
   name: string;
   description: string;
   stripe_coupon_id: string;
-  discount_type: string;
+  discount_type: string; // 'percentage' or 'fixed_amount'
   discount_value: number;
   currency: string;
   duration: string;
   active: boolean;
 }
 
+/** Promotional code that links to a coupon */
 export interface PromoCode {
   id: string;
   coupon_id: string;
@@ -47,6 +51,7 @@ export interface PromoCode {
   coupon?: Coupon;
 }
 
+/** Stripe Checkout Session with redirect URL */
 export interface CheckoutSession {
   sessionId: string;
   url: string;

@@ -5,6 +5,7 @@ import { StripeCheckoutService } from '../../../../../core/services/stripe-check
 import { Product, Price } from '../../../../../core/interfaces/stripe.interface';
 import { NotificationService } from '../../../../../core/services/notification.service';
 
+/** Basic Stripe checkout component (no promo codes/coupons) */
 @Component({
   selector: 'app-basic-checkout',
   standalone: true,
@@ -16,14 +17,14 @@ export class BasicCheckoutComponent implements OnInit {
   private readonly checkoutService = inject(StripeCheckoutService);
   private readonly notificationService = inject(NotificationService);
 
-  // Signals for reactive state management
+  // State
   products = signal<Product[]>([]);
   selectedProduct = signal<Product | null>(null);
   selectedPrice = signal<Price | null>(null);
   loading = signal(false);
   processingCheckout = signal(false);
 
-  // Computed signals
+  // Computed
   hasProducts = computed(() => this.products().length > 0);
   canCheckout = computed(() => this.selectedPrice() !== null && !this.processingCheckout());
 
@@ -31,6 +32,7 @@ export class BasicCheckoutComponent implements OnInit {
     this.loadProducts();
   }
 
+  /** Load available products from API */
   loadProducts(): void {
     this.loading.set(true);
     this.checkoutService.getProducts().subscribe({
@@ -54,15 +56,18 @@ export class BasicCheckoutComponent implements OnInit {
     });
   }
 
+  /** Select product and auto-select first price */
   selectProduct(product: Product): void {
     this.selectedProduct.set(product);
     this.selectedPrice.set(product.prices && product.prices.length > 0 ? product.prices[0] : null);
   }
 
+  /** Select pricing option */
   selectPrice(price: Price): void {
     this.selectedPrice.set(price);
   }
 
+  /** Format price amount (in cents) to currency string */
   formatPrice(amount: number, currency: string): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -70,8 +75,10 @@ export class BasicCheckoutComponent implements OnInit {
     }).format(amount / 100);
   }
 
+  /** Create checkout session and redirect to Stripe */
   proceedToCheckout(): void {
     const price = this.selectedPrice();
+    
     if (!price) {
       this.notificationService.error('Please select a product and price');
       return;
