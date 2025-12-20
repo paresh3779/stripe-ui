@@ -32,13 +32,13 @@ export class NavbarComponent {
     {
       label: 'Stripe Checkout',
       children: [
-        { label: 'Demo 1', link: '/main/stripe-checkout/demo1' },
-        { label: 'Demo 2', link: '/main/stripe-checkout/demo2' },
-        { label: 'Demo 3', link: '/main/stripe-checkout/demo3' }
+        { label: 'Basic Checkout', link: '/main/stripe-checkout/basic' },
+        { label: 'With Promo Code', link: '/main/stripe-checkout/promocode' },
+        { label: 'With Coupon', link: '/main/stripe-checkout/coupon' }
       ]
     },
     {
-      label: 'Stripe Subscription',
+      label: 'Stripe Subscription Checkout',
       children: [
         { label: 'Demo 1', link: '/main/stripe-subscription/demo1' },
         { label: 'Demo 2', link: '/main/stripe-subscription/demo2' },

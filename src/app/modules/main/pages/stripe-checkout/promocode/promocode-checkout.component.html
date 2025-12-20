@@ -1,0 +1,148 @@
+<div class="container py-5">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Checkout with Promo Code</h2>
+      <p class="text-muted mb-4">Select a product and apply a promo code to get a discount.</p>
+      <div class="alert alert-info">
+        <strong>Sample Promo Codes:</strong> WELCOME10, SAVE20, SPECIAL15
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  @if (!loading()) {
+  <div class="row">
+    <div class="col-md-8">
+      <h4 class="mb-3">Available Products</h4>
+      @if (!hasProducts()) {
+        <div class="alert alert-info">
+          No products available. Please ensure the database has been seeded with one-time products.
+        </div>
+      }
+      <div class="row g-3">
+        @for (product of products(); track product.id) {
+        <div class="col-md-6">
+          <div class="card h-100" [class.border-primary]="selectedProduct()?.id === product.id" (click)="selectProduct(product)" style="cursor: pointer;">
+            <div class="card-body">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="card-text text-muted">{{ product.description }}</p>
+              @if (product.prices && product.prices.length > 0) {
+                @for (price of product.prices; track price.id) {
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="radio" 
+                    [name]="'price-' + product.id"
+                    [id]="'price-' + price.id"
+                    [checked]="selectedPrice()?.id === price.id"
+                    (click)="selectPrice(price); $event.stopPropagation()">
+                  <label class="form-check-label" [for]="'price-' + price.id">
+                    {{ formatPrice(price.amount, price.currency) }} - {{ price.description }}
+                  </label>
+                </div>
+                }
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card sticky-top" style="top: 20px;">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Order Summary</h5>
+        </div>
+        <div class="card-body">
+          @if (!selectedProduct()) {
+            <div class="text-muted text-center py-4">
+              No product selected
+            </div>
+          } @else {
+            <h6>{{ selectedProduct()!.name }}</h6>
+            <p class="text-muted small">{{ selectedProduct()!.description }}</p>
+            <hr>
+            
+            <div class="mb-3">
+              <label class="form-label">Promo Code</label>
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [(ngModel)]="promoCode"
+                  placeholder="Enter promo code"
+                  [disabled]="isPromoCodeValid()">
+                <button 
+                  class="btn btn-outline-primary" 
+                  type="button"
+                  (click)="validatePromoCode()"
+                  [disabled]="!canValidatePromoCode()">
+                  @if (!validatingPromoCode()) {
+                    <span>Apply</span>
+                  } @else {
+                    <span>
+                      <span class="spinner-border spinner-border-sm" role="status"></span>
+                    </span>
+                  }
+                </button>
+              </div>
+              @if (validatedCoupon()) {
+                <div class="mt-2">
+                  <span class="badge bg-success">
+                    {{ validatedCoupon()!.name }} applied
+                    <button type="button" class="btn-close btn-close-white ms-2" (click)="removePromoCode()" style="font-size: 0.7rem;"></button>
+                  </span>
+                  <div class="text-muted small mt-1">{{ validatedCoupon()!.description }}</div>
+                </div>
+              }
+            </div>
+
+            @if (selectedPrice()) {
+              <div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span>Price:</span>
+                  <strong>{{ formatPrice(selectedPrice()!.amount, selectedPrice()!.currency) }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2" [class.text-success]="isPromoCodeValid()">
+                  <span>Discount:</span>
+                  <strong>-{{ formatPrice(discountAmount(), selectedPrice()!.currency) }}</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-3">
+                  <strong>Total:</strong>
+                  <strong class="text-primary">{{ formatPrice(totalAmount(), selectedPrice()!.currency) }}</strong>
+                </div>
+                <button 
+                  class="btn btn-primary w-100" 
+                  (click)="proceedToCheckout()"
+                  [disabled]="!canCheckout()">
+                  @if (!processingCheckout()) {
+                    <span>Proceed to Checkout</span>
+                  } @else {
+                    <span>
+                      <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Processing...
+                    </span>
+                  }
+                </button>
+              </div>
+            } @else {
+              <div class="text-muted text-center">
+                Please select a price option
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>

@@ -1,0 +1,27 @@
+.card {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  &.border-primary {
+    border-width: 2px;
+  }
+}
+
+.coupon-card {
+  &.border-success {
+    border-width: 2px;
+  }
+  
+  &.selected {
+    background-color: #f0f9ff;
+  }
+}
+
+.discount-badge {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #198754;
+}

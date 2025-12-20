@@ -1,0 +1,152 @@
+<div class="container py-5">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Checkout with Coupon</h2>
+      <p class="text-muted mb-4">Select a product and choose from available coupons to get a discount.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  @if (!loading()) {
+  <div class="row">
+    <div class="col-md-8">
+      <h4 class="mb-3">Available Products</h4>
+      @if (!hasProducts()) {
+        <div class="alert alert-info mb-4">
+          No products available. Please ensure the database has been seeded with one-time products.
+        </div>
+      }
+      <div class="row g-3 mb-4">
+        @for (product of products(); track product.id) {
+        <div class="col-md-6">
+          <div class="card h-100" [class.border-primary]="selectedProduct()?.id === product.id" (click)="selectProduct(product)" style="cursor: pointer;">
+            <div class="card-body">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="card-text text-muted">{{ product.description }}</p>
+              @if (product.prices && product.prices.length > 0) {
+                @for (price of product.prices; track price.id) {
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="radio" 
+                    [name]="'price-' + product.id"
+                    [id]="'price-' + price.id"
+                    [checked]="selectedPrice()?.id === price.id"
+                    (click)="selectPrice(price); $event.stopPropagation()">
+                  <label class="form-check-label" [for]="'price-' + price.id">
+                    {{ formatPrice(price.amount, price.currency) }} - {{ price.description }}
+                  </label>
+                </div>
+                }
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <h4 class="mb-3">Available Coupons</h4>
+      @if (loadingCoupons()) {
+        <div class="text-center py-3">
+          <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Loading coupons...</span>
+          </div>
+        </div>
+      }
+      @if (!loadingCoupons()) {
+        <div class="row g-3">
+        @for (coupon of coupons(); track coupon.id) {
+        <div class="col-md-4">
+          <div 
+            class="card h-100 coupon-card" 
+            [class.border-success]="selectedCoupon()?.id === coupon.id"
+            [class.selected]="selectedCoupon()?.id === coupon.id"
+            (click)="selectCoupon(coupon)" 
+            style="cursor: pointer;">
+            <div class="card-body text-center">
+              <div class="discount-badge mb-2">
+                {{ getDiscountLabel(coupon) }}
+              </div>
+              <h6 class="card-title">{{ coupon.name }}</h6>
+              <p class="card-text text-muted small">{{ coupon.description }}</p>
+              <span class="badge bg-info">{{ coupon.duration }}</span>
+            </div>
+          </div>
+        </div>
+        }
+        </div>
+      }
+    </div>
+
+    <div class="col-md-4">
+      <div class="card sticky-top" style="top: 20px;">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Order Summary</h5>
+        </div>
+        <div class="card-body">
+          @if (!selectedProduct()) {
+            <div class="text-muted text-center py-4">
+              No product selected
+            </div>
+          } @else {
+            <h6>{{ selectedProduct()!.name }}</h6>
+            <p class="text-muted small">{{ selectedProduct()!.description }}</p>
+            
+            @if (selectedCoupon()) {
+              <div class="alert alert-success py-2 px-3 mb-3">
+                <small>
+                  <strong>{{ selectedCoupon()!.name }}</strong><br>
+                  {{ selectedCoupon()!.description }}
+                </small>
+              </div>
+            }
+            
+            <hr>
+            @if (selectedPrice()) {
+              <div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span>Price:</span>
+                  <strong>{{ formatPrice(selectedPrice()!.amount, selectedPrice()!.currency) }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2" [class.text-success]="isCouponSelected()">
+                  <span>Discount:</span>
+                  <strong>-{{ formatPrice(discountAmount(), selectedPrice()!.currency) }}</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-3">
+                  <strong>Total:</strong>
+                  <strong class="text-primary">{{ formatPrice(totalAmount(), selectedPrice()!.currency) }}</strong>
+                </div>
+                <button 
+                  class="btn btn-primary w-100" 
+                  (click)="proceedToCheckout()"
+                  [disabled]="!canCheckout()">
+                  @if (!processingCheckout()) {
+                    <span>Proceed to Checkout</span>
+                  } @else {
+                    <span>
+                      <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Processing...
+                    </span>
+                  }
+                </button>
+              </div>
+            } @else {
+              <div class="text-muted text-center">
+                Please select a price option
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>
