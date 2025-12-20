@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+
+import { AuthService } from '../../../core/services/auth.service';
 
 interface MenuItem {
   label: string;
@@ -16,6 +18,11 @@ interface MenuItem {
   styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent {
+
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  user$ = this.authService.currentUser$;
 
   menu: MenuItem[] = [
     {
@@ -39,5 +46,14 @@ export class NavbarComponent {
       ]
     }
   ];
+
+  isAnyChildActive(item: MenuItem): boolean {
+    if (!item.children) return false;
+    return item.children.some(child => child.link ? this.router.isActive(child.link, true) : false);
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe();
+  }
 
 }

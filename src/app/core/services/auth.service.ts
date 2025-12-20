@@ -96,7 +96,7 @@ export class AuthService {
         }),
         catchError(error => {
           // Even if logout fails on server, clear local state
-          this.handleLogout();
+          //this.handleLogout();
           return throwError(() => error);
         })
       );

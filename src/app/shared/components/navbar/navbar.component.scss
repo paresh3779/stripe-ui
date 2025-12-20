@@ -2,3 +2,15 @@
 .navbar {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.nav-link:hover,
+.nav-link:focus {
+  background-color: rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+}
