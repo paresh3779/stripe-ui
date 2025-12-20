@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { StripeCheckoutService, Product, Price } from '../../../../../core/services/stripe-checkout.service';
+import { StripeCheckoutService } from '../../../../../core/services/stripe-checkout.service';
+import { Product, Price } from '../../../../../core/interfaces/stripe.interface';
 import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
