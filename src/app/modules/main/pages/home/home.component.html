@@ -1,5 +1,40 @@
-<!-- Home page content -->
-<div class="home-container">
-  <h1>Welcome to the Home Page</h1>
-  <p>This is the main page after login.</p>
+<div class="container py-5">
+  <div class="row">
+    <div class="col-12 text-center mb-5">
+      <h1>Welcome to Stripe Feature Demo</h1>
+      <p class="lead">Explore various payment integrations and demonstrations</p>
+    </div>
+  </div>
+
+  <div class="row mb-5">
+    <div class="col-12">
+      <h2>Stripe Checkout</h2>
+      <p>Experience different checkout flows and payment processing</p>
+    </div>
+    <div class="col-md-4 mb-4" *ngFor="let demo of checkoutDemos">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{demo.title}}</h5>
+          <p class="card-text">{{demo.description}}</p>
+          <a [routerLink]="demo.link" class="btn btn-primary">View Demo</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <h2>Stripe Subscription</h2>
+      <p>Manage recurring payments and subscription services</p>
+    </div>
+    <div class="col-md-4 mb-4" *ngFor="let demo of subscriptionDemos">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{demo.title}}</h5>
+          <p class="card-text">{{demo.description}}</p>
+          <a [routerLink]="demo.link" class="btn btn-primary">View Demo</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
