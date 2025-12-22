@@ -1,0 +1,26 @@
+.product-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+#payment-element {
+  min-height: 200px;
+}
+
+.list-group-item {
+  cursor: pointer;
+  
+  &:hover:not(:disabled) {
+    background-color: #f8f9fa;
+  }
+}

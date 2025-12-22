@@ -1,3 +1,4 @@
 {
-  "API_URL": "http://localhost:8000/api"
+  "API_URL": "http://localhost:8000/api",
+  "STRIPE_PUBLISHABLE_KEY": "pk_test_51RZTREPHN2Wf0mTBlySDUGLl8atZdL1kjUsqNrc2584rWCM7JAbR78ZsIkci3gEUwyX8UrjaeJOYMFCSgAvwu8KQ00d3Nu0Anm"
 }

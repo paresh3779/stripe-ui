@@ -1,0 +1,161 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Stripe PaymentIntent - Basic Checkout</h2>
+      <p class="text-muted">One-time product purchase without promo code or coupon</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="row">
+      <div class="col-12 text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading products...</p>
+      </div>
+    </div>
+  }
+
+  @if (!loading() && !paymentSuccess()) {
+    <div class="row">
+      <div class="col-md-8">
+        @if (!selectedProduct()) {
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Select a Product</h5>
+            </div>
+            <div class="card-body">
+              @if (products().length === 0) {
+                <p class="text-muted">No products available</p>
+              } @else {
+                <div class="row">
+                  @for (product of products(); track product.id) {
+                    <div class="col-md-6 mb-3">
+                      <div class="card h-100 product-card" (click)="selectProduct(product)">
+                        @if (product.image) {
+                          <img [src]="product.image" class="card-img-top" [alt]="product.name">
+                        }
+                        <div class="card-body">
+                          <h5 class="card-title">{{ product.name }}</h5>
+                          <p class="card-text">{{ product.description }}</p>
+                          @if (product.prices && product.prices.length > 0) {
+                            <p class="text-primary fw-bold">
+                              From {{ formatAmount(product.prices[0].amount, product.prices[0].currency) }}
+                            </p>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (selectedProduct() && !selectedPrice()) {
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Select a Price</h5>
+              <button class="btn btn-sm btn-secondary" (click)="selectProduct(null!)">Back</button>
+            </div>
+            <div class="card-body">
+              <h4>{{ selectedProduct()!.name }}</h4>
+              <p>{{ selectedProduct()!.description }}</p>
+              <div class="list-group mt-3">
+                @for (price of selectedProduct()!.prices; track price.id) {
+                  <button 
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    (click)="selectPrice(price)"
+                    [disabled]="processing()">
+                    <div>
+                      <strong>{{ price.description || 'Standard Price' }}</strong>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">
+                      {{ formatAmount(price.amount, price.currency) }}
+                    </span>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (selectedPrice() && clientSecret()) {
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Payment Details</h5>
+              <button class="btn btn-sm btn-secondary" (click)="resetForm()" [disabled]="processing()">Cancel</button>
+            </div>
+            <div class="card-body">
+              <h4>{{ selectedProduct()!.name }}</h4>
+              <p class="text-muted">{{ selectedPrice()!.description || 'One-time payment' }}</p>
+              
+              <div id="payment-element" class="my-4"></div>
+
+              <button 
+                class="btn btn-primary btn-lg w-100" 
+                (click)="handleSubmit()"
+                [disabled]="!isPaymentFormReady() || processing()">
+                @if (processing()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Processing...
+                } @else {
+                  Pay {{ formatAmount(selectedPrice()!.amount, selectedPrice()!.currency) }}
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">Order Summary</h5>
+          </div>
+          <div class="card-body">
+            @if (selectedProduct()) {
+              <p><strong>Product:</strong> {{ selectedProduct()!.name }}</p>
+            }
+            @if (selectedPrice()) {
+              <p><strong>Price:</strong> {{ formatAmount(selectedPrice()!.amount, selectedPrice()!.currency) }}</p>
+              <hr>
+              <p class="h5"><strong>Total:</strong> {{ formatAmount(selectedPrice()!.amount, selectedPrice()!.currency) }}</p>
+            } @else {
+              <p class="text-muted">Select a product and price to continue</p>
+            }
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body">
+            <h6 class="card-title">Payment Information</h6>
+            <ul class="small text-muted">
+              <li>Secure payment processing</li>
+              <li>No promo code or coupon applied</li>
+              <li>One-time payment</li>
+              <li>Instant confirmation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (paymentSuccess()) {
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-success" role="alert">
+          <h4 class="alert-heading">Payment Successful!</h4>
+          <p>Your payment has been processed successfully.</p>
+          <hr>
+          <p class="mb-0">
+            <button class="btn btn-primary" (click)="resetForm()">Make Another Purchase</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

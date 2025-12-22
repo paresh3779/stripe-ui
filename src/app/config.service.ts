@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 export interface AppConfigModel {
   API_URL: string;
+  STRIPE_PUBLISHABLE_KEY: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -28,5 +29,10 @@ export class AppConfig {
   /** Base API URL */
   get apiUrl(): string {
     return this.config.API_URL ?? '/api';
+  }
+
+  /** Stripe Publishable Key */
+  get stripePublishableKey(): string {
+    return this.config.STRIPE_PUBLISHABLE_KEY ?? '';
   }
 }

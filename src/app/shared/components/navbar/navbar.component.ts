@@ -38,6 +38,14 @@ export class NavbarComponent {
       ]
     },
     {
+      label: 'Stripe PaymentIntent',
+      children: [
+        { label: 'Basic Payment', link: '/main/stripe-payment-intent/basic' },
+        { label: 'With Promo Code', link: '/main/stripe-payment-intent/promocode' },
+        { label: 'With Coupon', link: '/main/stripe-payment-intent/coupon' }
+      ]
+    },
+    {
       label: 'Stripe Subscription Checkout',
       children: [
         { label: 'Demo 1', link: '/main/stripe-subscription/demo1' },
