@@ -1,0 +1,24 @@
+/* Coupon Checkout Component Styles */
+.card {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &.border-primary {
+    border-width: 2px;
+  }
+}
+
+.list-group-item {
+  &.active {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+  }
+}
+
+.table-borderless td {
+  padding: 0.5rem 0;
+}

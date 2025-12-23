@@ -1,0 +1,191 @@
+<!-- Demo 4: Subscription Checkout with Promo Code -->
+<div class="container py-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Subscription with Promo Code</h2>
+      <p class="text-muted mb-4">Select a subscription plan and enter your promo code for a discount</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2 text-muted">Loading subscription plans...</p>
+    </div>
+  }
+
+  <!-- No Products -->
+  @if (!loading() && !hasProducts()) {
+    <div class="alert alert-info">
+      No subscription products available at this time.
+    </div>
+  }
+
+  <!-- Product List -->
+  @if (!loading() && hasProducts()) {
+    <div class="row g-4">
+      @for (product of products(); track product.id) {
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100" 
+               [class.border-primary]="selectedProduct()?.id === product.id"
+               [class.shadow]="selectedProduct()?.id === product.id">
+            <div class="card-body">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="card-text text-muted">{{ product.description }}</p>
+              
+              @if (product.prices && product.prices.length > 0) {
+                <div class="mb-3">
+                  <span class="h4 text-primary">
+                    {{ formatPrice(product.prices[0].amount, product.prices[0].currency) }}
+                  </span>
+                  <span class="text-muted">{{ getIntervalLabel(product.prices[0].interval) }}</span>
+                </div>
+              }
+
+              <button class="btn w-100"
+                      [class.btn-primary]="selectedProduct()?.id !== product.id"
+                      [class.btn-outline-primary]="selectedProduct()?.id === product.id"
+                      (click)="selectProduct(product)">
+                {{ selectedProduct()?.id === product.id ? 'Selected' : messages.SELECT_PLAN }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Selected Product and Promo Code -->
+    @if (selectedProduct()) {
+      <div class="row mt-4">
+        <!-- Price Selection -->
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header">
+              <h5 class="mb-0">Select Price</h5>
+            </div>
+            <div class="card-body">
+              <div class="list-group">
+                @for (price of selectedProduct()?.prices; track price.id) {
+                  <button type="button" 
+                          class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                          [class.active]="selectedPrice()?.id === price.id"
+                          (click)="selectPrice(price)">
+                    <div>
+                      <strong>{{ price.description || 'Standard Plan' }}</strong>
+                      <p class="mb-0 small text-muted">{{ price.interval === 'month' ? 'Monthly' : 'Yearly' }} billing</p>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">
+                      {{ formatPrice(price.amount, price.currency) }}
+                    </span>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Promo Code Input -->
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header bg-info text-white">
+              <h5 class="mb-0">Enter Promo Code</h5>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label for="promoCode" class="form-label">Promo Code</label>
+                <div class="input-group">
+                  <input type="text" 
+                         class="form-control form-control-lg" 
+                         id="promoCode"
+                         [value]="promoCode()"
+                         (input)="updatePromoCode($any($event.target).value)"
+                         placeholder="Enter code"
+                         [disabled]="isPromoValid()"
+                         [class.is-valid]="isPromoValid()"
+                         [class.is-invalid]="validatedPromo() && !isPromoValid()">
+                  @if (!isPromoValid()) {
+                    <button class="btn btn-info" 
+                            type="button"
+                            [disabled]="!canValidatePromo()"
+                            (click)="validatePromoCode()">
+                      @if (validatingPromo()) {
+                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                      } @else {
+                        Apply
+                      }
+                    </button>
+                  } @else {
+                    <button class="btn btn-outline-danger" 
+                            type="button"
+                            (click)="clearPromoCode()">
+                      Clear
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Validated Promo Display -->
+              @if (isPromoValid()) {
+                <div class="alert alert-success mb-0">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ validatedPromo()?.promoCode?.code }}</strong>
+                      <p class="mb-0 small">{{ validatedPromo()?.coupon?.description }}</p>
+                    </div>
+                    <span class="badge bg-success fs-6">{{ formatDiscount() }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      @if (selectedPrice() && isPromoValid()) {
+        <div class="card mt-4">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Order Summary</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-8">
+                <table class="table table-borderless mb-0">
+                  <tbody>
+                    <tr>
+                      <td>{{ selectedProduct()?.name }} - {{ selectedPrice()?.description || 'Standard' }}</td>
+                      <td class="text-end">{{ formatPrice(discountedAmount()!.original, discountedAmount()!.currency) }}</td>
+                    </tr>
+                    <tr class="text-success">
+                      <td>Promo Code: {{ promoCode() }}</td>
+                      <td class="text-end">-{{ formatPrice(discountedAmount()!.discount, discountedAmount()!.currency) }}</td>
+                    </tr>
+                    <tr class="border-top">
+                      <td><strong>Total</strong></td>
+                      <td class="text-end"><strong class="h5">{{ formatPrice(discountedAmount()!.final, discountedAmount()!.currency) }}</strong>{{ getIntervalLabel(selectedPrice()!.interval) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="col-md-4 d-flex align-items-center">
+                <button class="btn btn-success btn-lg w-100"
+                        [disabled]="!canCheckout()"
+                        (click)="proceedToCheckout()">
+                  @if (processingCheckout()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    {{ messages.PROCESSING }}
+                  } @else {
+                    {{ messages.SUBSCRIBE_NOW }}
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  }
+</div>

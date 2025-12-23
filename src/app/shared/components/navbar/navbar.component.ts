@@ -46,11 +46,12 @@ export class NavbarComponent {
       ]
     },
     {
-      label: 'Stripe Subscription Checkout',
+      label: 'Subscription Checkout',
       children: [
-        { label: 'Demo 1', link: '/main/stripe-subscription/demo1' },
-        { label: 'Demo 2', link: '/main/stripe-subscription/demo2' },
-        { label: 'Demo 3', link: '/main/stripe-subscription/demo3' }
+        { label: 'Monthly/Yearly Plans', link: '/main/stripe-subscription-checkout/subscription' },
+        { label: 'With Free Trial', link: '/main/stripe-subscription-checkout/trial' },
+        { label: 'With Coupon', link: '/main/stripe-subscription-checkout/coupon' },
+        { label: 'With Promo Code', link: '/main/stripe-subscription-checkout/promocode' }
       ]
     }
   ];

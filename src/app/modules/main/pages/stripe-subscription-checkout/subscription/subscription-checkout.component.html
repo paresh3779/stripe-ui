@@ -1,0 +1,135 @@
+<!-- Demo 1: Subscription Checkout with Monthly/Yearly Billing -->
+<div class="container py-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Subscription Plans</h2>
+      <p class="text-muted mb-4">Choose a subscription plan with monthly or yearly billing</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2 text-muted">Loading subscription plans...</p>
+    </div>
+  }
+
+  <!-- No Products -->
+  @if (!loading() && !hasProducts()) {
+    <div class="alert alert-info">
+      No subscription products available at this time.
+    </div>
+  }
+
+  <!-- Product List -->
+  @if (!loading() && hasProducts()) {
+    <div class="row g-4">
+      @for (product of products(); track product.id) {
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100" 
+               [class.border-primary]="selectedProduct()?.id === product.id"
+               [class.shadow]="selectedProduct()?.id === product.id">
+            <div class="card-body">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="card-text text-muted">{{ product.description }}</p>
+              
+              @if (product.prices && product.prices.length > 0) {
+                <div class="mb-3">
+                  <span class="h4 text-primary">
+                    {{ formatPrice(product.prices[0].amount, product.prices[0].currency) }}
+                  </span>
+                  <span class="text-muted">{{ getIntervalLabel(product.prices[0].interval) }}</span>
+                </div>
+              }
+
+              <button class="btn w-100"
+                      [class.btn-primary]="selectedProduct()?.id !== product.id"
+                      [class.btn-outline-primary]="selectedProduct()?.id === product.id"
+                      (click)="selectProduct(product)">
+                {{ selectedProduct()?.id === product.id ? 'Selected' : messages.SELECT_PLAN }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Selected Product Details -->
+    @if (selectedProduct()) {
+      <div class="card mt-4">
+        <div class="card-header">
+          <h5 class="mb-0">{{ selectedProduct()?.name }} - Configure Your Plan</h5>
+        </div>
+        <div class="card-body">
+          <!-- Billing Interval Toggle -->
+          @if (hasYearlyPrices()) {
+            <div class="mb-4">
+              <label class="form-label fw-bold">Billing Cycle</label>
+              <div class="btn-group w-100" role="group">
+                <button type="button" 
+                        class="btn"
+                        [class.btn-primary]="selectedInterval() === 'month'"
+                        [class.btn-outline-primary]="selectedInterval() !== 'month'"
+                        (click)="setInterval('month')">
+                  {{ messages.MONTHLY_BILLING }}
+                </button>
+                <button type="button" 
+                        class="btn"
+                        [class.btn-primary]="selectedInterval() === 'year'"
+                        [class.btn-outline-primary]="selectedInterval() !== 'year'"
+                        (click)="setInterval('year')">
+                  {{ messages.YEARLY_BILLING }}
+                  <span class="badge bg-success ms-1">Save</span>
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Price Options -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">Select Price</label>
+            <div class="list-group">
+              @for (price of filteredPrices(); track price.id) {
+                <button type="button" 
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                        [class.active]="selectedPrice()?.id === price.id"
+                        (click)="selectPrice(price)">
+                  <div>
+                    <strong>{{ price.description || 'Standard Plan' }}</strong>
+                    @if (price.features && price.features.length > 0) {
+                      <ul class="mb-0 mt-1 small">
+                        @for (feature of price.features; track feature) {
+                          <li>{{ feature }}</li>
+                        }
+                      </ul>
+                    }
+                  </div>
+                  <span class="badge bg-primary rounded-pill">
+                    {{ formatPrice(price.amount, price.currency) }}{{ getIntervalLabel(price.interval) }}
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Checkout Button -->
+          <div class="d-grid">
+            <button class="btn btn-success btn-lg"
+                    [disabled]="!canCheckout()"
+                    (click)="proceedToCheckout()">
+              @if (processingCheckout()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                {{ messages.PROCESSING }}
+              } @else {
+                {{ messages.SUBSCRIBE_NOW }}
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>
