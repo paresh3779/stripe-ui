@@ -1,22 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { HomeComponent } from './pages/home/home.component';
-import { BasicCheckoutComponent } from './pages/stripe-checkout/basic/basic-checkout.component';
-import { PromocodeCheckoutComponent } from './pages/stripe-checkout/promocode/promocode-checkout.component';
-import { CouponCheckoutComponent } from './pages/stripe-checkout/coupon/coupon-checkout.component';
-import { BasicPaymentIntentComponent } from './pages/stripe-payment-intent/basic/basic-payment-intent.component';
-import { PromocodePaymentIntentComponent } from './pages/stripe-payment-intent/promocode/promocode-payment-intent.component';
-import { CouponPaymentIntentComponent } from './pages/stripe-payment-intent/coupon/coupon-payment-intent.component';
-import { SubscriptionCheckoutComponent } from './pages/stripe-subscription-checkout/subscription/subscription-checkout.component';
-import { TrialCheckoutComponent } from './pages/stripe-subscription-checkout/trial/trial-checkout.component';
-import { CouponCheckoutComponent as SubscriptionCouponCheckoutComponent } from './pages/stripe-subscription-checkout/coupon/coupon-checkout.component';
-import { PromocodeCheckoutComponent as SubscriptionPromocodeCheckoutComponent } from './pages/stripe-subscription-checkout/promocode/promocode-checkout.component';
-import { SubscriptionSuccessComponent } from './pages/stripe-subscription-checkout/success/subscription-success.component';
-import { SubscriptionPaymentIntentComponent } from './pages/stripe-subscription-payment-intent/subscription/subscription-payment-intent.component';
-import { TrialPaymentIntentComponent } from './pages/stripe-subscription-payment-intent/trial/trial-payment-intent.component';
-import { CouponPaymentIntentComponent as SubscriptionCouponPaymentIntentComponent } from './pages/stripe-subscription-payment-intent/coupon/coupon-payment-intent.component';
-import { PromocodePaymentIntentComponent as SubscriptionPromocodePaymentIntentComponent } from './pages/stripe-subscription-payment-intent/promocode/promocode-payment-intent.component';
 
+/**
+ * Main routing module with lazy-loaded Stripe demo routes
+ * All Stripe components are standalone and loaded on demand for optimal performance
+ */
 const routes: Routes = [
   {
     path: '',
@@ -25,99 +13,28 @@ const routes: Routes = [
   },
   {
     path: 'home',
-    component: HomeComponent
+    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
+    title: 'Home'
   },
   {
     path: 'stripe-checkout',
-    children: [
-      {
-        path: 'basic',
-        component: BasicCheckoutComponent
-      },
-      {
-        path: 'promocode',
-        component: PromocodeCheckoutComponent
-      },
-      {
-        path: 'coupon',
-        component: CouponCheckoutComponent
-      }
-    ]
+    loadChildren: () => import('./pages/stripe-checkout/stripe-checkout.routes').then(m => m.STRIPE_CHECKOUT_ROUTES),
+    title: 'Stripe Checkout'
   },
   {
     path: 'stripe-payment-intent',
-    children: [
-      {
-        path: 'basic',
-        component: BasicPaymentIntentComponent
-      },
-      {
-        path: 'promocode',
-        component: PromocodePaymentIntentComponent
-      },
-      {
-        path: 'coupon',
-        component: CouponPaymentIntentComponent
-      }
-    ]
+    loadChildren: () => import('./pages/stripe-payment-intent/stripe-payment-intent.routes').then(m => m.STRIPE_PAYMENT_INTENT_ROUTES),
+    title: 'Stripe PaymentIntent'
   },
   {
     path: 'stripe-subscription-checkout',
-    children: [
-      {
-        path: 'subscription',
-        component: SubscriptionCheckoutComponent
-      },
-      {
-        path: 'subscription/success',
-        component: SubscriptionSuccessComponent
-      },
-      {
-        path: 'trial',
-        component: TrialCheckoutComponent
-      },
-      {
-        path: 'trial/success',
-        component: SubscriptionSuccessComponent
-      },
-      {
-        path: 'coupon',
-        component: SubscriptionCouponCheckoutComponent
-      },
-      {
-        path: 'coupon/success',
-        component: SubscriptionSuccessComponent
-      },
-      {
-        path: 'promocode',
-        component: SubscriptionPromocodeCheckoutComponent
-      },
-      {
-        path: 'promocode/success',
-        component: SubscriptionSuccessComponent
-      }
-    ]
+    loadChildren: () => import('./pages/stripe-subscription-checkout/stripe-subscription-checkout.routes').then(m => m.STRIPE_SUBSCRIPTION_CHECKOUT_ROUTES),
+    title: 'Subscription Checkout'
   },
   {
     path: 'stripe-subscription-payment-intent',
-    children: [
-      {
-        path: 'subscription',
-        component: SubscriptionPaymentIntentComponent
-      },
-      {
-        path: 'trial',
-        component: TrialPaymentIntentComponent
-      },
-      {
-        path: 'coupon',
-        component: SubscriptionCouponPaymentIntentComponent
-      },
-      {
-        path: 'promocode',
-        component: SubscriptionPromocodePaymentIntentComponent
-      }
-    ]
+    loadChildren: () => import('./pages/stripe-subscription-payment-intent/stripe-subscription-payment-intent.routes').then(m => m.STRIPE_SUBSCRIPTION_PAYMENT_INTENT_ROUTES),
+    title: 'Subscription PaymentIntent'
   }
 ];
 
