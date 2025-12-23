@@ -12,6 +12,10 @@ import { TrialCheckoutComponent } from './pages/stripe-subscription-checkout/tri
 import { CouponCheckoutComponent as SubscriptionCouponCheckoutComponent } from './pages/stripe-subscription-checkout/coupon/coupon-checkout.component';
 import { PromocodeCheckoutComponent as SubscriptionPromocodeCheckoutComponent } from './pages/stripe-subscription-checkout/promocode/promocode-checkout.component';
 import { SubscriptionSuccessComponent } from './pages/stripe-subscription-checkout/success/subscription-success.component';
+import { SubscriptionPaymentIntentComponent } from './pages/stripe-subscription-payment-intent/subscription/subscription-payment-intent.component';
+import { TrialPaymentIntentComponent } from './pages/stripe-subscription-payment-intent/trial/trial-payment-intent.component';
+import { CouponPaymentIntentComponent as SubscriptionCouponPaymentIntentComponent } from './pages/stripe-subscription-payment-intent/coupon/coupon-payment-intent.component';
+import { PromocodePaymentIntentComponent as SubscriptionPromocodePaymentIntentComponent } from './pages/stripe-subscription-payment-intent/promocode/promocode-payment-intent.component';
 
 const routes: Routes = [
   {
@@ -91,6 +95,27 @@ const routes: Routes = [
       {
         path: 'promocode/success',
         component: SubscriptionSuccessComponent
+      }
+    ]
+  },
+  {
+    path: 'stripe-subscription-payment-intent',
+    children: [
+      {
+        path: 'subscription',
+        component: SubscriptionPaymentIntentComponent
+      },
+      {
+        path: 'trial',
+        component: TrialPaymentIntentComponent
+      },
+      {
+        path: 'coupon',
+        component: SubscriptionCouponPaymentIntentComponent
+      },
+      {
+        path: 'promocode',
+        component: SubscriptionPromocodePaymentIntentComponent
       }
     ]
   }

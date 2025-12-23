@@ -53,6 +53,15 @@ export class NavbarComponent {
         { label: 'With Coupon', link: '/main/stripe-subscription-checkout/coupon' },
         { label: 'With Promo Code', link: '/main/stripe-subscription-checkout/promocode' }
       ]
+    },
+    {
+      label: 'Subscription PaymentIntent',
+      children: [
+        { label: 'Monthly/Yearly Plans', link: '/main/stripe-subscription-payment-intent/subscription' },
+        { label: 'With Free Trial', link: '/main/stripe-subscription-payment-intent/trial' },
+        { label: 'With Coupon', link: '/main/stripe-subscription-payment-intent/coupon' },
+        { label: 'With Promo Code', link: '/main/stripe-subscription-payment-intent/promocode' }
+      ]
     }
   ];
 

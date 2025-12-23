@@ -67,6 +67,42 @@ export const API_ENDPOINTS = {
         CREATE_SESSION: 'stripe/subscription-checkout/promocode/create-session'
       }
     },
+    SUBSCRIPTION_PAYMENT_INTENT: {
+      SUBSCRIPTION: {
+        PRODUCTS: 'stripe/subscription-payment-intent/subscription/products',
+        PRODUCT: (id: string) => `stripe/subscription-payment-intent/subscription/products/${id}`,
+        SETUP_INTENT: 'stripe/subscription-payment-intent/subscription/setup-intent',
+        CREATE: 'stripe/subscription-payment-intent/subscription/create',
+        CONFIRM: 'stripe/subscription-payment-intent/subscription/confirm'
+      },
+      TRIAL: {
+        PRODUCTS: 'stripe/subscription-payment-intent/trial/products',
+        PRODUCT: (id: string) => `stripe/subscription-payment-intent/trial/products/${id}`,
+        TRIAL_INFO: 'stripe/subscription-payment-intent/trial/trial-info',
+        SETUP_INTENT: 'stripe/subscription-payment-intent/trial/setup-intent',
+        CREATE: 'stripe/subscription-payment-intent/trial/create',
+        CONFIRM: 'stripe/subscription-payment-intent/trial/confirm'
+      },
+      COUPON: {
+        PRODUCTS: 'stripe/subscription-payment-intent/coupon/products',
+        PRODUCT: (id: string) => `stripe/subscription-payment-intent/coupon/products/${id}`,
+        COUPONS: 'stripe/subscription-payment-intent/coupon/coupons',
+        VALIDATE: 'stripe/subscription-payment-intent/coupon/validate-coupon',
+        CALCULATE_DISCOUNT: 'stripe/subscription-payment-intent/coupon/calculate-discount',
+        SETUP_INTENT: 'stripe/subscription-payment-intent/coupon/setup-intent',
+        CREATE: 'stripe/subscription-payment-intent/coupon/create',
+        CONFIRM: 'stripe/subscription-payment-intent/coupon/confirm'
+      },
+      PROMOCODE: {
+        PRODUCTS: 'stripe/subscription-payment-intent/promocode/products',
+        PRODUCT: (id: string) => `stripe/subscription-payment-intent/promocode/products/${id}`,
+        VALIDATE: 'stripe/subscription-payment-intent/promocode/validate-promocode',
+        CALCULATE_DISCOUNT: 'stripe/subscription-payment-intent/promocode/calculate-discount',
+        SETUP_INTENT: 'stripe/subscription-payment-intent/promocode/setup-intent',
+        CREATE: 'stripe/subscription-payment-intent/promocode/create',
+        CONFIRM: 'stripe/subscription-payment-intent/promocode/confirm'
+      }
+    },
     WEBHOOK: 'stripe/webhook'
   }
 } as const;

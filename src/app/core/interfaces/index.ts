@@ -3,3 +3,4 @@ export * from './auth.interface';
 export * from './user.interface';
 export * from './stripe.interface';
 export * from './subscription.interface';
+export * from './subscription-payment-intent.interface';

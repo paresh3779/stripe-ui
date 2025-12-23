@@ -1,0 +1,147 @@
+<!-- Demo 2: Subscription PaymentIntent with Trial Period -->
+<div class="container py-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Free Trial Subscription</h2>
+      <p class="text-muted mb-4">Start your free trial with payment method on file</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  <!-- No Products -->
+  @if (!loading() && !hasProducts()) {
+    <div class="alert alert-info">No trial plans available.</div>
+  }
+
+  <!-- Step 1: Product Selection -->
+  @if (!loading() && hasProducts() && paymentStep() === 'select') {
+    <div class="row g-4">
+      @for (product of products(); track product.id) {
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100" 
+               [class.border-success]="selectedProduct()?.id === product.id"
+               [class.shadow]="selectedProduct()?.id === product.id">
+            <div class="card-header bg-success text-white text-center">
+              @if (product.prices && product.prices[0]?.trial_days) {
+                {{ formatTrialDays(product.prices[0].trial_days) }} Free Trial
+              } @else {
+                Free Trial Available
+              }
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="card-text text-muted">{{ product.description }}</p>
+              
+              @if (product.prices && product.prices.length > 0) {
+                <div class="mb-3">
+                  <span class="h4 text-success">$0.00</span>
+                  <span class="text-muted small"> today</span>
+                </div>
+                <p class="small text-muted">
+                  Then {{ formatPrice(product.prices[0].amount, product.prices[0].currency) }}{{ getIntervalLabel(product.prices[0].interval!) }}
+                </p>
+              }
+
+              <button class="btn w-100"
+                      [class.btn-success]="selectedProduct()?.id !== product.id"
+                      [class.btn-outline-success]="selectedProduct()?.id === product.id"
+                      (click)="selectProduct(product)">
+                {{ selectedProduct()?.id === product.id ? 'Selected' : messages.START_TRIAL }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Selected Product Configuration -->
+    @if (selectedProduct()) {
+      <div class="card mt-4 border-success">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">{{ selectedProduct()?.name }} - Start Your Free Trial</h5>
+        </div>
+        <div class="card-body">
+          <!-- Trial Price Options -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">Select Trial Plan</label>
+            <div class="list-group">
+              @for (price of trialPrices(); track price.id) {
+                <button type="button" 
+                        class="list-group-item list-group-item-action"
+                        [class.active]="selectedPrice()?.id === price.id"
+                        (click)="selectPrice(price)">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ price.description || 'Standard Plan' }}</strong>
+                      <p class="mb-0 small">
+                        <span class="badge bg-success me-2">{{ formatTrialDays(price.trial_days) }} FREE</span>
+                        Then {{ formatPrice(price.amount, price.currency) }}{{ getIntervalLabel(price.interval!) }}
+                      </p>
+                    </div>
+                    <span class="h5 text-success">$0.00</span>
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Proceed Button -->
+          <div class="d-grid">
+            <button class="btn btn-success btn-lg"
+                    [disabled]="!canProceed()"
+                    (click)="proceedToPayment()">
+              {{ messages.ENTER_CARD }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Step 2: Payment -->
+  @if (paymentStep() === 'payment') {
+    <div class="card border-success">
+      <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Add Payment Method</h5>
+        <button class="btn btn-sm btn-light" (click)="goBack()">← Back</button>
+      </div>
+      <div class="card-body">
+        <!-- Trial Info -->
+        <div class="alert alert-success mb-4">
+          <strong>{{ formatTrialDays(selectedPrice()?.trial_days) }} Free Trial</strong>
+          <p class="mb-0 small">You won't be charged today. After trial ends: {{ formatPrice(selectedPrice()!.amount, selectedPrice()!.currency) }}{{ getIntervalLabel(selectedPrice()!.interval!) }}</p>
+        </div>
+
+        <!-- Payment Form Placeholder -->
+        <div class="border rounded p-4 mb-4 bg-light">
+          <p class="text-center text-muted mb-0">
+            <strong>Stripe Elements Payment Form</strong><br>
+            <small>Card will be saved for after trial period</small>
+          </p>
+        </div>
+
+        <!-- Start Trial Button -->
+        <div class="d-grid">
+          <button class="btn btn-success btn-lg"
+                  [disabled]="processingPayment()"
+                  (click)="processPayment()">
+            @if (processingPayment()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              {{ messages.PROCESSING }}
+            } @else {
+              {{ messages.START_TRIAL }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
