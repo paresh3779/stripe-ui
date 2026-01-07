@@ -77,3 +77,70 @@ export interface CalculateDiscountRequest {
   coupon_id?: string;
   code?: string;
 }
+
+/** User subscription with related data */
+export interface UserSubscription {
+  id: string;
+  stripe_subscription_id: string;
+  status: 'active' | 'past_due' | 'unpaid' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'paused';
+  product: {
+    id: string;
+    name: string;
+    description: string;
+  };
+  price: {
+    id: string;
+    amount: number;
+    currency: string;
+    interval: 'month' | 'year';
+  };
+  current_period_start: string | null;
+  current_period_end: string | null;
+  trial_end: string | null;
+  canceled_at: string | null;
+  cancel_at_period_end: boolean;
+  can_cancel: boolean;
+  can_refund: boolean;
+  days_until_refund_expires: number;
+  created_at: string;
+  invoices: UserInvoice[];
+}
+
+/** User invoice */
+export interface UserInvoice {
+  id: string;
+  number: string | null;
+  stripe_invoice_id: string;
+  status: 'draft' | 'open' | 'paid' | 'uncollectible' | 'void';
+  amount_due: number;
+  amount_paid: number;
+  subtotal: number;
+  total: number;
+  tax: number;
+  currency: string;
+  description: string | null;
+  hosted_invoice_url: string | null;
+  invoice_pdf: string | null;
+  due_date: string | null;
+  paid_at: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  subscription?: {
+    id: string;
+    product_name: string;
+  };
+  created_at: string;
+}
+
+/** Cancel subscription response */
+export interface CancelSubscriptionResponse {
+  subscription: UserSubscription;
+  refund: {
+    success: boolean;
+    refund_id?: string;
+    amount?: number;
+    currency?: string;
+    status?: string;
+    message?: string;
+  } | null;
+}

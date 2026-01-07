@@ -1,28 +1,58 @@
-<!-- Demo 1: Subscription Checkout with Monthly/Yearly Billing -->
+<!-- Subscription Checkout with Full Management -->
 <div class="container py-4">
   <div class="row">
     <div class="col-12">
-      <h2 class="mb-4">Subscription Plans</h2>
-      <p class="text-muted mb-4">Choose a subscription plan with monthly or yearly billing</p>
+      <h2 class="mb-2">Subscription Management</h2>
+      <p class="text-muted mb-4">Choose a plan, manage subscriptions, and view invoices</p>
     </div>
   </div>
 
-  <!-- Loading State -->
-  @if (loading()) {
-    <div class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-      <p class="mt-2 text-muted">Loading subscription plans...</p>
-    </div>
-  }
+  <!-- Tabs Navigation -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <button class="nav-link" 
+              [class.active]="activeTab() === 'products'"
+              (click)="setActiveTab('products')">
+        <i class="bi bi-box me-1"></i> Plans
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" 
+              [class.active]="activeTab() === 'subscriptions'"
+              (click)="setActiveTab('subscriptions')">
+        <i class="bi bi-credit-card me-1"></i> My Subscriptions
+        @if (activeSubscriptionsCount() > 0) {
+          <span class="badge bg-success ms-1">{{ activeSubscriptionsCount() }}</span>
+        }
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" 
+              [class.active]="activeTab() === 'invoices'"
+              (click)="setActiveTab('invoices')">
+        <i class="bi bi-receipt me-1"></i> Invoices
+      </button>
+    </li>
+  </ul>
 
-  <!-- No Products -->
-  @if (!loading() && !hasProducts()) {
-    <div class="alert alert-info">
-      No subscription products available at this time.
-    </div>
-  }
+  <!-- Products Tab -->
+  @if (activeTab() === 'products') {
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading subscription plans...</p>
+      </div>
+    }
+
+    <!-- No Products -->
+    @if (!loading() && !hasProducts()) {
+      <div class="alert alert-info">
+        No subscription products available at this time.
+      </div>
+    }
 
   <!-- Product List -->
   @if (!loading() && hasProducts()) {
@@ -132,4 +162,223 @@
       </div>
     }
   }
+  } <!-- End Products Tab -->
+
+  <!-- Subscriptions Tab -->
+  @if (activeTab() === 'subscriptions') {
+    @if (loadingSubscriptions()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading your subscriptions...</p>
+      </div>
+    }
+
+    @if (!loadingSubscriptions() && !hasSubscriptions()) {
+      <div class="alert alert-info">
+        <h5 class="alert-heading">No Active Subscriptions</h5>
+        <p class="mb-0">You don't have any subscriptions yet. Check out our plans to get started!</p>
+        <hr>
+        <button class="btn btn-primary btn-sm" (click)="setActiveTab('products')">View Plans</button>
+      </div>
+    }
+
+    @if (!loadingSubscriptions() && hasSubscriptions()) {
+      <div class="row g-4">
+        @for (subscription of subscriptions(); track subscription.id) {
+          <div class="col-12">
+            <div class="card" [class.border-success]="subscription.status === 'active'" [class.border-warning]="subscription.cancel_at_period_end">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="mb-0">{{ subscription.product.name }}</h5>
+                  <small class="text-muted">{{ subscription.product.description }}</small>
+                </div>
+                <span class="badge" [ngClass]="getStatusBadgeClass(subscription.status)">
+                  {{ subscription.status | titlecase }}
+                  @if (subscription.cancel_at_period_end) {
+                    <span class="ms-1">(Cancels {{ formatDate(subscription.current_period_end) }})</span>
+                  }
+                </span>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <p class="mb-2">
+                      <strong>Price:</strong> 
+                      {{ formatPrice(subscription.price.amount, subscription.price.currency) }}/{{ subscription.price.interval }}
+                    </p>
+                    <p class="mb-2">
+                      <strong>Current Period:</strong> 
+                      {{ formatDate(subscription.current_period_start) }} - {{ formatDate(subscription.current_period_end) }}
+                    </p>
+                    @if (subscription.trial_end) {
+                      <p class="mb-2">
+                        <strong>Trial Ends:</strong> {{ formatDate(subscription.trial_end) }}
+                      </p>
+                    }
+                    <p class="mb-0">
+                      <strong>Started:</strong> {{ formatDate(subscription.created_at) }}
+                    </p>
+                  </div>
+                  <div class="col-md-6">
+                    @if (subscription.can_cancel && !subscription.cancel_at_period_end) {
+                      <div class="d-flex flex-column gap-2">
+                        @if (subscription.can_refund) {
+                          <div class="alert alert-success py-2 mb-2">
+                            <small>
+                              <strong>Refund eligible!</strong> 
+                              {{ subscription.days_until_refund_expires }} day(s) remaining to request a full refund.
+                            </small>
+                          </div>
+                          <button class="btn btn-danger" 
+                                  [disabled]="isCancelling(subscription.id)"
+                                  (click)="cancelWithRefund(subscription)">
+                            @if (isCancelling(subscription.id)) {
+                              <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            Cancel & Refund
+                          </button>
+                        }
+                        <button class="btn btn-outline-warning" 
+                                [disabled]="isCancelling(subscription.id)"
+                                (click)="cancelSubscription(subscription)">
+                          @if (isCancelling(subscription.id)) {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                          }
+                          Cancel at Period End
+                        </button>
+                      </div>
+                    }
+                    @if (subscription.cancel_at_period_end) {
+                      <div class="alert alert-warning py-2 mb-0">
+                        <small>This subscription will be cancelled on {{ formatDate(subscription.current_period_end) }}</small>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Recent Invoices for this subscription -->
+                @if (subscription.invoices && subscription.invoices.length > 0) {
+                  <hr>
+                  <h6>Recent Invoices</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                      <thead>
+                        <tr>
+                          <th>Invoice #</th>
+                          <th>Date</th>
+                          <th>Amount</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (invoice of subscription.invoices; track invoice.id) {
+                          <tr>
+                            <td>{{ invoice.number || '-' }}</td>
+                            <td>{{ formatDate(invoice.paid_at) }}</td>
+                            <td>{{ formatPrice(invoice.total, invoice.currency) }}</td>
+                            <td><span class="badge" [ngClass]="getStatusBadgeClass(invoice.status)">{{ invoice.status }}</span></td>
+                            <td>
+                              @if (invoice.invoice_pdf) {
+                                <button class="btn btn-sm btn-outline-primary me-1" (click)="downloadInvoicePdf(invoice)">
+                                  PDF
+                                </button>
+                              }
+                              @if (invoice.hosted_invoice_url) {
+                                <button class="btn btn-sm btn-outline-secondary" (click)="viewInvoice(invoice)">
+                                  View
+                                </button>
+                              }
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  } <!-- End Subscriptions Tab -->
+
+  <!-- Invoices Tab -->
+  @if (activeTab() === 'invoices') {
+    @if (loadingInvoices()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading your invoices...</p>
+      </div>
+    }
+
+    @if (!loadingInvoices() && !hasInvoices()) {
+      <div class="alert alert-info">
+        <h5 class="alert-heading">No Invoices</h5>
+        <p class="mb-0">You don't have any invoices yet.</p>
+      </div>
+    }
+
+    @if (!loadingInvoices() && hasInvoices()) {
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">All Invoices</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (invoice of invoices(); track invoice.id) {
+                  <tr>
+                    <td>{{ invoice.number || invoice.stripe_invoice_id.slice(-8) }}</td>
+                    <td>{{ formatDate(invoice.created_at) }}</td>
+                    <td>
+                      @if (invoice.subscription) {
+                        {{ invoice.subscription.product_name }}
+                      } @else {
+                        {{ invoice.description || 'Invoice' }}
+                      }
+                    </td>
+                    <td>{{ formatPrice(invoice.total, invoice.currency) }}</td>
+                    <td><span class="badge" [ngClass]="getStatusBadgeClass(invoice.status)">{{ invoice.status }}</span></td>
+                    <td>
+                      @if (invoice.invoice_pdf) {
+                        <button class="btn btn-sm btn-outline-primary me-1" 
+                                title="Download PDF"
+                                (click)="downloadInvoicePdf(invoice)">
+                          <i class="bi bi-download"></i> PDF
+                        </button>
+                      }
+                      @if (invoice.hosted_invoice_url) {
+                        <button class="btn btn-sm btn-outline-secondary" 
+                                title="View Invoice"
+                                (click)="viewInvoice(invoice)">
+                          <i class="bi bi-eye"></i> View
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  } <!-- End Invoices Tab -->
 </div>

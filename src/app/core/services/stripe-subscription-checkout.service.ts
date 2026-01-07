@@ -11,7 +11,10 @@ import {
   TrialInfo,
   CouponValidation,
   PromoCodeValidation,
-  DiscountCalculation
+  DiscountCalculation,
+  UserSubscription,
+  UserInvoice,
+  CancelSubscriptionResponse
 } from '../interfaces/subscription.interface';
 
 /**
@@ -169,6 +172,54 @@ export class StripeSubscriptionCheckoutService {
     return this.http.post<ApiResponse<SubscriptionCheckoutSession>>(
       this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_CHECKOUT.PROMOCODE.CREATE_SESSION),
       { price_id: priceId, promo_code: promoCode }
+    );
+  }
+
+  // ==================== Subscription Management ====================
+
+  /** Get user's subscriptions */
+  getUserSubscriptions(): Observable<ApiResponse<UserSubscription[]>> {
+    return this.http.get<ApiResponse<UserSubscription[]>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_CHECKOUT.SUBSCRIPTION.SUBSCRIPTIONS)
+    );
+  }
+
+  /** Get a single subscription by ID */
+  getSubscription(subscriptionId: string): Observable<ApiResponse<UserSubscription>> {
+    return this.http.get<ApiResponse<UserSubscription>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_CHECKOUT.SUBSCRIPTION.SUBSCRIPTION(subscriptionId))
+    );
+  }
+
+  /** Cancel subscription (with optional immediate cancellation and refund) */
+  cancelSubscription(subscriptionId: string, immediate: boolean = false): Observable<ApiResponse<CancelSubscriptionResponse>> {
+    return this.http.post<ApiResponse<CancelSubscriptionResponse>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_CHECKOUT.SUBSCRIPTION.CANCEL(subscriptionId)),
+      { immediate }
+    );
+  }
+
+  // ==================== Invoice Management ====================
+
+  /** Get user's invoices */
+  getUserInvoices(subscriptionId?: string): Observable<ApiResponse<UserInvoice[]>> {
+    const params = subscriptionId ? `?subscription_id=${subscriptionId}` : '';
+    return this.http.get<ApiResponse<UserInvoice[]>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_CHECKOUT.SUBSCRIPTION.INVOICES) + params
+    );
+  }
+
+  /** Get a single invoice by ID */
+  getInvoice(invoiceId: string): Observable<ApiResponse<UserInvoice>> {
+    return this.http.get<ApiResponse<UserInvoice>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_CHECKOUT.SUBSCRIPTION.INVOICE(invoiceId))
+    );
+  }
+
+  /** Get invoice PDF download URL */
+  downloadInvoice(invoiceId: string): Observable<ApiResponse<{ pdf_url: string }>> {
+    return this.http.get<ApiResponse<{ pdf_url: string }>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_CHECKOUT.SUBSCRIPTION.DOWNLOAD_INVOICE(invoiceId))
     );
   }
 }

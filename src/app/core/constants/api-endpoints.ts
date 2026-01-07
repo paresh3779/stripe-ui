@@ -43,7 +43,15 @@ export const API_ENDPOINTS = {
       SUBSCRIPTION: {
         PRODUCTS: 'stripe/subscription-checkout/subscription/products',
         PRODUCT: (id: string) => `stripe/subscription-checkout/subscription/products/${id}`,
-        CREATE_SESSION: 'stripe/subscription-checkout/subscription/create-session'
+        CREATE_SESSION: 'stripe/subscription-checkout/subscription/create-session',
+        // Subscription Management
+        SUBSCRIPTIONS: 'stripe/subscription-checkout/subscription/subscriptions',
+        SUBSCRIPTION: (id: string) => `stripe/subscription-checkout/subscription/subscriptions/${id}`,
+        CANCEL: (id: string) => `stripe/subscription-checkout/subscription/subscriptions/${id}/cancel`,
+        // Invoice Management
+        INVOICES: 'stripe/subscription-checkout/subscription/invoices',
+        INVOICE: (id: string) => `stripe/subscription-checkout/subscription/invoices/${id}`,
+        DOWNLOAD_INVOICE: (id: string) => `stripe/subscription-checkout/subscription/invoices/${id}/download`
       },
       TRIAL: {
         PRODUCTS: 'stripe/subscription-checkout/trial/products',
