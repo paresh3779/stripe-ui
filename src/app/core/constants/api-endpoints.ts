@@ -89,7 +89,19 @@ export const API_ENDPOINTS = {
         TRIAL_INFO: 'stripe/subscription-payment-intent/trial/trial-info',
         SETUP_INTENT: 'stripe/subscription-payment-intent/trial/setup-intent',
         CREATE: 'stripe/subscription-payment-intent/trial/create',
-        CONFIRM: 'stripe/subscription-payment-intent/trial/confirm'
+        CREATE_WITH_SAVED: 'stripe/subscription-payment-intent/trial/create-with-saved',
+        CONFIRM: 'stripe/subscription-payment-intent/trial/confirm',
+        // Payment Methods
+        PAYMENT_METHODS: 'stripe/subscription-payment-intent/trial/payment-methods',
+        DELETE_PAYMENT_METHOD: (id: string) => `stripe/subscription-payment-intent/trial/payment-methods/${id}`,
+        // Subscription Management
+        SUBSCRIPTIONS: 'stripe/subscription-payment-intent/trial/subscriptions',
+        SUBSCRIPTION: (id: string) => `stripe/subscription-payment-intent/trial/subscriptions/${id}`,
+        CANCEL_SUBSCRIPTION: (id: string) => `stripe/subscription-payment-intent/trial/subscriptions/${id}/cancel`,
+        // Invoice Management
+        INVOICES: 'stripe/subscription-payment-intent/trial/invoices',
+        INVOICE: (id: string) => `stripe/subscription-payment-intent/trial/invoices/${id}`,
+        DOWNLOAD_INVOICE: (id: string) => `stripe/subscription-payment-intent/trial/invoices/${id}/download`
       },
       COUPON: {
         PRODUCTS: 'stripe/subscription-payment-intent/coupon/products',

@@ -13,7 +13,11 @@ import {
   TrialInfoResponse,
   CouponValidationResponse,
   PromoCodeValidationResponse,
-  DiscountCalculationResponse
+  DiscountCalculationResponse,
+  SavedPaymentMethod,
+  TrialSubscription,
+  TrialInvoice,
+  CancelTrialSubscriptionResponse
 } from '../interfaces/subscription-payment-intent.interface';
 
 /**
@@ -111,11 +115,91 @@ export class StripeSubscriptionPaymentIntentService {
     );
   }
 
+  /** Create subscription with saved payment method */
+  createTrialSubscriptionWithSaved(priceId: string, savedPaymentMethodId: string): Observable<ApiResponse<SubscriptionResponse>> {
+    return this.http.post<ApiResponse<SubscriptionResponse>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.CREATE_WITH_SAVED),
+      { price_id: priceId, saved_payment_method_id: savedPaymentMethodId }
+    );
+  }
+
   /** Confirm trial subscription status */
   confirmTrialSubscription(subscriptionId: string): Observable<ApiResponse<SubscriptionConfirmation>> {
     return this.http.post<ApiResponse<SubscriptionConfirmation>>(
       this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.CONFIRM),
       { subscription_id: subscriptionId }
+    );
+  }
+
+  // ==================== Trial Payment Methods ====================
+
+  /** Get user's saved payment methods */
+  getTrialPaymentMethods(): Observable<ApiResponse<SavedPaymentMethod[]>> {
+    return this.http.get<ApiResponse<SavedPaymentMethod[]>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.PAYMENT_METHODS)
+    );
+  }
+
+  /** Save a new payment method */
+  saveTrialPaymentMethod(paymentMethodId: string, setDefault: boolean = true): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.PAYMENT_METHODS),
+      { payment_method_id: paymentMethodId, set_default: setDefault }
+    );
+  }
+
+  /** Delete a saved payment method */
+  deleteTrialPaymentMethod(paymentMethodId: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.DELETE_PAYMENT_METHOD(paymentMethodId))
+    );
+  }
+
+  // ==================== Trial Subscription Management ====================
+
+  /** Get user's trial subscriptions */
+  getTrialSubscriptions(): Observable<ApiResponse<TrialSubscription[]>> {
+    return this.http.get<ApiResponse<TrialSubscription[]>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.SUBSCRIPTIONS)
+    );
+  }
+
+  /** Get a single trial subscription */
+  getTrialSubscription(subscriptionId: string): Observable<ApiResponse<TrialSubscription>> {
+    return this.http.get<ApiResponse<TrialSubscription>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.SUBSCRIPTION(subscriptionId))
+    );
+  }
+
+  /** Cancel trial subscription */
+  cancelTrialSubscription(subscriptionId: string, immediate: boolean = false): Observable<ApiResponse<CancelTrialSubscriptionResponse>> {
+    return this.http.post<ApiResponse<CancelTrialSubscriptionResponse>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.CANCEL_SUBSCRIPTION(subscriptionId)),
+      { immediate }
+    );
+  }
+
+  // ==================== Trial Invoice Management ====================
+
+  /** Get user's trial invoices */
+  getTrialInvoices(subscriptionId?: string): Observable<ApiResponse<TrialInvoice[]>> {
+    const params = subscriptionId ? `?subscription_id=${subscriptionId}` : '';
+    return this.http.get<ApiResponse<TrialInvoice[]>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.INVOICES) + params
+    );
+  }
+
+  /** Get a single trial invoice */
+  getTrialInvoice(invoiceId: string): Observable<ApiResponse<TrialInvoice>> {
+    return this.http.get<ApiResponse<TrialInvoice>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.INVOICE(invoiceId))
+    );
+  }
+
+  /** Download trial invoice PDF */
+  downloadTrialInvoice(invoiceId: string): Observable<ApiResponse<{ pdf_url: string }>> {
+    return this.http.get<ApiResponse<{ pdf_url: string }>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.SUBSCRIPTION_PAYMENT_INTENT.TRIAL.DOWNLOAD_INVOICE(invoiceId))
     );
   }
 
