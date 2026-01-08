@@ -6,7 +6,7 @@ import { NotificationService } from '../../../../../core/services/notification.s
 import { SubscriptionProduct, SubscriptionPrice } from '../../../../../core/interfaces/subscription.interface';
 import { SavedPaymentMethod, TrialSubscription, TrialInvoice } from '../../../../../core/interfaces/subscription-payment-intent.interface';
 import { SUBSCRIPTION_PAYMENT_INTENT_MESSAGES } from '../../../../../core/constants/subscription-payment-intent-messages.constant';
-import { environment } from '../../../../../../environments/environment';
+import { AppConfig } from '../../../../../config.service';
 import { loadStripe, Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
 
 /**
@@ -25,6 +25,7 @@ export class TrialPaymentIntentComponent implements OnInit, OnDestroy, AfterView
 
   private readonly paymentIntentService = inject(StripeSubscriptionPaymentIntentService);
   private readonly notificationService = inject(NotificationService);
+  private readonly appConfig = inject(AppConfig);
 
   // Stripe
   private stripe: Stripe | null = null;
@@ -86,7 +87,7 @@ export class TrialPaymentIntentComponent implements OnInit, OnDestroy, AfterView
   readonly TRIAL_DAYS = 15;
 
   async ngOnInit(): Promise<void> {
-    this.stripe = await loadStripe(environment.stripePublishableKey);
+    this.stripe = await loadStripe(this.appConfig.stripePublishableKey);
     this.loadProducts();
     this.loadSubscriptions();
     this.loadInvoices();

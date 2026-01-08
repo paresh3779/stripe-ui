@@ -35,6 +35,11 @@ const routes: Routes = [
     path: 'stripe-subscription-payment-intent',
     loadChildren: () => import('./pages/stripe-subscription-payment-intent/stripe-subscription-payment-intent.routes').then(m => m.STRIPE_SUBSCRIPTION_PAYMENT_INTENT_ROUTES),
     title: 'Subscription PaymentIntent'
+  },
+  {
+    path: 'invoices',
+    loadComponent: () => import('./pages/invoices/invoices.component').then(m => m.InvoicesComponent),
+    title: 'Invoice Management'
   }
 ];
 

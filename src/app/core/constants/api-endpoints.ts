@@ -103,6 +103,17 @@ export const API_ENDPOINTS = {
         INVOICE: (id: string) => `stripe/subscription-payment-intent/trial/invoices/${id}`,
         DOWNLOAD_INVOICE: (id: string) => `stripe/subscription-payment-intent/trial/invoices/${id}/download`
       },
+      // Centralized Invoice Management
+      INVOICES: {
+        LIST: 'stripe/invoices',
+        STATISTICS: 'stripe/invoices/statistics',
+        SYNC: 'stripe/invoices/sync',
+        GET: (id: string) => `stripe/invoices/${id}`,
+        DOWNLOAD: (id: string) => `stripe/invoices/${id}/download`,
+        VIEW_ON_STRIPE: (id: string) => `stripe/invoices/${id}/view-on-stripe`,
+        PRINT: (id: string) => `stripe/invoices/${id}/print`,
+        RESEND_EMAIL: (id: string) => `stripe/invoices/${id}/resend-email`
+      },
       COUPON: {
         PRODUCTS: 'stripe/subscription-payment-intent/coupon/products',
         PRODUCT: (id: string) => `stripe/subscription-payment-intent/coupon/products/${id}`,
