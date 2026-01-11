@@ -56,3 +56,17 @@ export interface CheckoutSession {
   sessionId: string;
   url: string;
 }
+
+/** Checkout Session Verification Result */
+export interface CheckoutSessionVerification {
+  verified: boolean;
+  session_id: string;
+  status: string;
+  payment_status: string;
+  customer_email: string | null;
+  amount_total: number;
+  currency: string;
+  payment_intent: string | null;
+  is_paid: boolean;
+  is_complete: boolean;
+}

@@ -24,7 +24,8 @@ export const API_ENDPOINTS = {
       BASIC: {
         PRODUCTS: 'stripe/checkout/basic/products',
         PRODUCT: (id: string) => `stripe/checkout/basic/products/${id}`,
-        CREATE_SESSION: 'stripe/checkout/basic/create-session'
+        CREATE_SESSION: 'stripe/checkout/basic/create-session',
+        VERIFY_SESSION: 'stripe/checkout/basic/verify-session'
       },
       PROMOCODE: {
         PRODUCTS: 'stripe/checkout/promocode/products',

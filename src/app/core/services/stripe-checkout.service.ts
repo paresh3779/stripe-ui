@@ -8,7 +8,8 @@ import {
   Price,
   Coupon,
   PromoCode,
-  CheckoutSession
+  CheckoutSession,
+  CheckoutSessionVerification
 } from '../interfaces/stripe.interface';
 import { ApiResponse } from '../interfaces/api-response.interface';
 
@@ -44,6 +45,14 @@ export class StripeCheckoutService {
     return this.http.post<ApiResponse<CheckoutSession>>(
       this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.BASIC.CREATE_SESSION),
       { price_id: priceId }
+    );
+  }
+
+  /** Verify checkout session status */
+  verifySession(sessionId: string): Observable<ApiResponse<CheckoutSessionVerification>> {
+    return this.http.post<ApiResponse<CheckoutSessionVerification>>(
+      this.apiUrlService.url(API_ENDPOINTS.STRIPE.CHECKOUT.BASIC.VERIFY_SESSION),
+      { session_id: sessionId }
     );
   }
 

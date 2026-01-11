@@ -1,4 +1,85 @@
 <div class="container py-5">
+  <!-- Payment Result Messages -->
+  @if (showPaymentResult()) {
+    <div class="row mb-4">
+      <div class="col-12">
+        <!-- Verifying -->
+        @if (paymentStatus() === 'verifying') {
+          <div class="alert alert-info d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm me-3" role="status"></div>
+            <div>
+              <strong>Verifying payment...</strong>
+              <p class="mb-0 small">Please wait while we confirm your payment.</p>
+            </div>
+          </div>
+        }
+
+        <!-- Success -->
+        @if (paymentStatus() === 'success') {
+          <div class="alert alert-success">
+            <div class="d-flex align-items-start">
+              <i class="bi bi-check-circle-fill fs-3 me-3 text-success"></i>
+              <div class="flex-grow-1">
+                <h4 class="alert-heading mb-2">Payment Successful!</h4>
+                <p class="mb-2">Thank you for your purchase. Your payment has been processed successfully.</p>
+                @if (sessionVerification()) {
+                  <hr>
+                  <div class="row small">
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Session ID:</strong> {{ sessionVerification()!.session_id }}</p>
+                      <p class="mb-1"><strong>Status:</strong> {{ sessionVerification()!.payment_status | titlecase }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Amount:</strong> {{ (sessionVerification()!.amount_total / 100) | currency:sessionVerification()!.currency.toUpperCase() }}</p>
+                      @if (sessionVerification()!.customer_email) {
+                        <p class="mb-1"><strong>Email:</strong> {{ sessionVerification()!.customer_email }}</p>
+                      }
+                    </div>
+                  </div>
+                }
+                <button class="btn btn-outline-success btn-sm mt-3" (click)="clearPaymentStatus()">
+                  Continue Shopping
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Cancelled -->
+        @if (paymentStatus() === 'cancelled') {
+          <div class="alert alert-warning">
+            <div class="d-flex align-items-start">
+              <i class="bi bi-x-circle-fill fs-3 me-3 text-warning"></i>
+              <div class="flex-grow-1">
+                <h4 class="alert-heading mb-2">Payment Cancelled</h4>
+                <p class="mb-2">Your payment was cancelled. No charges have been made to your account.</p>
+                <button class="btn btn-outline-warning btn-sm mt-2" (click)="clearPaymentStatus()">
+                  Try Again
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Error -->
+        @if (paymentStatus() === 'error') {
+          <div class="alert alert-danger">
+            <div class="d-flex align-items-start">
+              <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-danger"></i>
+              <div class="flex-grow-1">
+                <h4 class="alert-heading mb-2">Verification Failed</h4>
+                <p class="mb-2">{{ verificationError() || 'Unable to verify payment status. Please contact support if you were charged.' }}</p>
+                <button class="btn btn-outline-danger btn-sm mt-2" (click)="clearPaymentStatus()">
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   <div class="row">
     <div class="col-12">
       <h2 class="mb-4">Basic Checkout</h2>
