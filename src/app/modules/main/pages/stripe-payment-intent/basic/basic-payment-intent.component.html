@@ -17,7 +17,7 @@
     </div>
   }
 
-  @if (!loading() && !paymentSuccess()) {
+  @if (!loading() && !paymentSuccess() && !paymentFailed()) {
     <div class="row">
       <div class="col-md-8">
         @if (!selectedProduct()) {
@@ -86,7 +86,9 @@
           <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h5 class="mb-0">Payment Details</h5>
-              <button class="btn btn-sm btn-secondary" (click)="resetForm()" [disabled]="processing()">Cancel</button>
+              <button class="btn btn-sm btn-outline-secondary" (click)="cancelCurrentPayment()" [disabled]="processing()">
+                Cancel Payment
+              </button>
             </div>
             <div class="card-body">
               <h4>{{ selectedProduct()!.name }}</h4>
@@ -146,14 +148,76 @@
 
   @if (paymentSuccess()) {
     <div class="row">
-      <div class="col-12">
-        <div class="alert alert-success" role="alert">
-          <h4 class="alert-heading">Payment Successful!</h4>
-          <p>Your payment has been processed successfully.</p>
-          <hr>
-          <p class="mb-0">
-            <button class="btn btn-primary" (click)="resetForm()">Make Another Purchase</button>
-          </p>
+      <div class="col-md-8 mx-auto">
+        <div class="card border-success">
+          <div class="card-header bg-success text-white">
+            <h4 class="mb-0">
+              <i class="bi bi-check-circle-fill me-2"></i>Payment Successful!
+            </h4>
+          </div>
+          <div class="card-body">
+            <p class="lead">Thank you for your purchase! Your payment has been processed successfully.</p>
+            
+            @if (paymentResult()) {
+              <div class="bg-light p-3 rounded mb-3">
+                <h5 class="text-muted mb-3">Payment Details</h5>
+                <div class="row">
+                  <div class="col-6">
+                    <p class="mb-1"><strong>Amount Paid:</strong></p>
+                    <p class="h4 text-success">{{ formatAmount(paymentResult()!.payment.amount, paymentResult()!.payment.currency) }}</p>
+                  </div>
+                  <div class="col-6">
+                    <p class="mb-1"><strong>Date:</strong></p>
+                    <p>{{ formatDate(paymentResult()!.payment.paid_at) }}</p>
+                  </div>
+                </div>
+                <hr>
+                <p class="mb-1"><strong>Transaction ID:</strong></p>
+                <p class="text-muted small">{{ paymentResult()!.paymentIntent.id }}</p>
+                
+                @if (paymentResult()?.invoice) {
+                  <hr>
+                  <p class="mb-1"><strong>Invoice Number:</strong></p>
+                  <p class="text-primary">{{ paymentResult()?.invoice?.number }}</p>
+                }
+              </div>
+              
+              <div class="alert alert-info">
+                <i class="bi bi-envelope me-2"></i>
+                A payment receipt has been sent to your email address.
+              </div>
+            }
+            
+            <div class="d-flex gap-2 mt-4">
+              <button class="btn btn-primary" (click)="resetForm()">
+                <i class="bi bi-cart-plus me-2"></i>Make Another Purchase
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (paymentFailed()) {
+    <div class="row">
+      <div class="col-md-8 mx-auto">
+        <div class="card border-danger">
+          <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">
+              <i class="bi bi-x-circle-fill me-2"></i>Payment Failed
+            </h4>
+          </div>
+          <div class="card-body">
+            <p class="lead text-danger">{{ errorMessage() }}</p>
+            <p>Please try again with a different payment method or contact support if the issue persists.</p>
+            
+            <div class="d-flex gap-2 mt-4">
+              <button class="btn btn-primary" (click)="resetForm()">
+                <i class="bi bi-arrow-clockwise me-2"></i>Try Again
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

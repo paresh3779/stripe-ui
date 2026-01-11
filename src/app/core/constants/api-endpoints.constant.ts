@@ -9,6 +9,8 @@ export const API_ENDPOINTS = {
     PRODUCT_BY_ID: (id: string) => `stripe/payment-intent/basic/products/${id}`,
     CREATE: 'stripe/payment-intent/basic/create',
     CONFIRM: 'stripe/payment-intent/basic/confirm',
+    STATUS: 'stripe/payment-intent/basic/status',
+    CANCEL: 'stripe/payment-intent/basic/cancel',
   },
 
   // Stripe PaymentIntent - PromoCode

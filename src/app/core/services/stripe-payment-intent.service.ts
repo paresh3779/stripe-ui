@@ -62,6 +62,26 @@ export class StripePaymentIntentService {
   }
 
   /**
+   * Get payment status (Basic)
+   */
+  getPaymentStatus(paymentIntentId: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(
+      this.apiUrlService.url(API_ENDPOINTS.PAYMENT_INTENT_BASIC.STATUS),
+      { payment_intent_id: paymentIntentId }
+    );
+  }
+
+  /**
+   * Cancel payment intent (Basic)
+   */
+  cancelPayment(paymentIntentId: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(
+      this.apiUrlService.url(API_ENDPOINTS.PAYMENT_INTENT_BASIC.CANCEL),
+      { payment_intent_id: paymentIntentId }
+    );
+  }
+
+  /**
    * Get all one-time products (PromoCode)
    */
   getProductsWithPromoCode(): Observable<ApiResponse<Product[]>> {

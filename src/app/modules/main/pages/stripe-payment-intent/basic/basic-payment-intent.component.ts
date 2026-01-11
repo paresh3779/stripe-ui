@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StripePaymentIntentService } from '../../../../../core/services/stripe-payment-intent.service';
@@ -7,6 +7,31 @@ import { NotificationService } from '../../../../../core/services/notification.s
 import { AppConfig } from '../../../../../config.service';
 import { MESSAGES } from '../../../../../core/constants/messages.constant';
 import { loadStripe, Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
+
+/**
+ * Payment result interface
+ */
+interface PaymentResult {
+  status: string;
+  payment: {
+    id: string;
+    amount: number;
+    currency: string;
+    description: string;
+    paid_at: string;
+  };
+  invoice?: {
+    id: string;
+    number: string;
+    total: number;
+  };
+  paymentIntent: {
+    id: string;
+    status: string;
+    amount: number;
+    currency: string;
+  };
+}
 
 /**
  * Component for basic PaymentIntent checkout without promo code or coupon
@@ -18,29 +43,42 @@ import { loadStripe, Stripe, StripeElements, StripePaymentElement } from '@strip
   templateUrl: './basic-payment-intent.component.html',
   styleUrls: ['./basic-payment-intent.component.scss']
 })
-export class BasicPaymentIntentComponent implements OnInit {
+export class BasicPaymentIntentComponent implements OnInit, OnDestroy {
   private paymentIntentService = inject(StripePaymentIntentService);
   private notificationService = inject(NotificationService);
   private config = inject(AppConfig);
 
+  // State signals
   products = signal<Product[]>([]);
   selectedProduct = signal<Product | null>(null);
   selectedPrice = signal<Price | null>(null);
   loading = signal<boolean>(false);
   processing = signal<boolean>(false);
   paymentSuccess = signal<boolean>(false);
+  paymentFailed = signal<boolean>(false);
+  errorMessage = signal<string>('');
+  paymentResult = signal<PaymentResult | null>(null);
   
+  // Stripe instances
   stripe: Stripe | null = null;
   elements: StripeElements | null = null;
   paymentElement: StripePaymentElement | null = null;
   clientSecret = signal<string>('');
   paymentIntentId = signal<string>('');
+  paymentId = signal<string>('');
 
   /**
    * Computed property to check if payment form is ready
    */
   isPaymentFormReady = computed(() => {
     return this.clientSecret() !== '' && !this.processing();
+  });
+
+  /**
+   * Computed property to check if can submit payment
+   */
+  canSubmitPayment = computed(() => {
+    return this.isPaymentFormReady() && !this.processing() && this.paymentElement !== null;
   });
 
   /**
@@ -174,16 +212,45 @@ export class BasicPaymentIntentComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data.status === 'succeeded') {
           this.paymentSuccess.set(true);
+          this.paymentResult.set(response.data as PaymentResult);
           this.notificationService.success(MESSAGES.SUCCESS.PAYMENT_SUCCESSFUL);
+        } else if (response.data.status === 'failed') {
+          this.paymentFailed.set(true);
+          this.errorMessage.set('Payment failed. Please try again.');
+          this.notificationService.error(MESSAGES.PAYMENT.FAILED);
         } else {
-          this.notificationService.error(MESSAGES.PAYMENT.CONFIRMATION_FAILED);
+          this.notificationService.info('Payment is being processed...');
         }
         this.processing.set(false);
       },
       error: (error) => {
         console.error('Error confirming payment:', error);
+        this.paymentFailed.set(true);
+        this.errorMessage.set(error.error?.message || MESSAGES.PAYMENT.CONFIRMATION_FAILED);
         this.notificationService.error(MESSAGES.PAYMENT.CONFIRMATION_FAILED);
         this.processing.set(false);
+      }
+    });
+  }
+
+  /**
+   * Cancel the current payment
+   */
+  cancelCurrentPayment(): void {
+    if (!this.paymentIntentId()) {
+      this.resetForm();
+      return;
+    }
+
+    this.processing.set(true);
+    this.paymentIntentService.cancelPayment(this.paymentIntentId()).subscribe({
+      next: () => {
+        this.notificationService.info('Payment cancelled');
+        this.resetForm();
+      },
+      error: (error) => {
+        console.error('Error canceling payment:', error);
+        this.resetForm();
       }
     });
   }
@@ -196,11 +263,30 @@ export class BasicPaymentIntentComponent implements OnInit {
     this.selectedPrice.set(null);
     this.clientSecret.set('');
     this.paymentIntentId.set('');
+    this.paymentId.set('');
     this.paymentSuccess.set(false);
+    this.paymentFailed.set(false);
+    this.errorMessage.set('');
+    this.paymentResult.set(null);
+    this.processing.set(false);
+    
     if (this.paymentElement) {
       this.paymentElement.unmount();
+      this.paymentElement = null;
     }
+    this.elements = null;
     this.loadProducts();
+  }
+
+  /**
+   * Cleanup on component destroy
+   */
+  ngOnDestroy(): void {
+    if (this.paymentElement) {
+      this.paymentElement.unmount();
+      this.paymentElement = null;
+    }
+    this.elements = null;
   }
 
   /**
@@ -211,5 +297,19 @@ export class BasicPaymentIntentComponent implements OnInit {
       style: 'currency',
       currency: currency.toUpperCase(),
     }).format(amount / 100);
+  }
+
+  /**
+   * Format date for display
+   */
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 }
